@@ -23,7 +23,7 @@ enum Role{
 // OrderStatus enum
  enum OrderStatus{
 PENDING
-PEOCESSING
+PROCESSING
 DELIVERED
 CANCELLED
  }

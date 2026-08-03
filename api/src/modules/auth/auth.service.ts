@@ -11,6 +11,7 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -20,10 +21,11 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
-    const { email, password, fullName } = registerDto;
+    const { email, password, firstName, lastName } = registerDto;
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -37,11 +39,12 @@ export class AuthService {
       const hashedPassword = await bcrypt.hash(password, this.saltRounds);
 
       const user = await this.prisma.user.create({
-        data: { email, password: hashedPassword, fullName },
+        data: { email, password: hashedPassword, firstName, lastName },
         select: {
           id: true,
           email: true,
-          fullName: true,
+          firstName: true,
+          lastName: true,
           role: true,
         },
       });
@@ -50,6 +53,7 @@ export class AuthService {
         user.id,
         user.email,
       );
+
       await this.updateRefreshToken(user.id, refreshToken);
 
       return { accessToken, refreshToken, user };
@@ -61,7 +65,6 @@ export class AuthService {
     }
   }
 
-  // Now a proper class method, not nested inside register()
   private async generateTokens(
     userId: string,
     email: string,
@@ -70,11 +73,11 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        // secret: process.env.JWT_SECRET,
+        secret: this.configService.get<string>('JWT_SECRET'),
         expiresIn: '15m',
       }),
       this.jwtService.signAsync(payload, {
-        // secret: process.env.JWT_REFRESH_SECRET,
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
         expiresIn: '7d',
       }),
     ]);
@@ -132,23 +135,10 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { email },
-      // select: {
-      //   id: true,
-      //   email: true,
-      //   firstName: true,
-      //   lastName: true,
-      //   role: true,
-      //   password: true,
-      // },
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Inavalid EMAIL or PASSWORD');
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new InternalServerErrorException('Invalid password');
     }
 
     const tokens = await this.generateTokens(user.id, user.email);
