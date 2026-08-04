@@ -26,7 +26,7 @@ CREATE TABLE "users" (
 CREATE TABLE "products" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "dsecription" TEXT,
+    "description" TEXT,
     "price" DECIMAL(10,2) NOT NULL,
     "stock" INTEGER NOT NULL DEFAULT 0,
     "sku" TEXT NOT NULL,

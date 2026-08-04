@@ -65,6 +65,34 @@ export class AuthService {
     }
   }
 
+  // Log in
+  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+    const { email, password } = loginDto;
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Inavalid EMAIL or PASSWORD');
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    };
+  }
+
+  // Generate Tokens \\
   private async generateTokens(
     userId: string,
     email: string,
@@ -85,19 +113,20 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  // Update refresh token in the databsae
+  // Update refresh token in the database \\
   async updateRefreshToken(
     userId: string,
     refreshToken: string,
   ): Promise<void> {
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, this.saltRounds);
+
     await this.prisma.user.update({
       where: { id: userId },
-      data: { refreshToken },
+      data: { refreshToken: hashedRefreshToken },
     });
   }
 
-  // refresh tokens method
-
+  // refresh tokens method \\
   async refreshTokens(userId: string): Promise<AuthResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -127,32 +156,5 @@ export class AuthService {
       where: { id: userId },
       data: { refreshToken: null },
     });
-  }
-
-  // Log in
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
-    const { email, password } = loginDto;
-
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Inavalid EMAIL or PASSWORD');
-    }
-
-    const tokens = await this.generateTokens(user.id, user.email);
-    await this.updateRefreshToken(user.id, tokens.refreshToken);
-
-    return {
-      ...tokens,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-    };
   }
 }
