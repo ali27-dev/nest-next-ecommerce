@@ -5,7 +5,6 @@ import {
   Min,
   IsUUID,
   IsOptional,
-  IsBoolean,
   IsUrl,
 } from 'class-validator';
 

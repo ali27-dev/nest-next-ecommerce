@@ -1,14 +1,14 @@
 import {
   Body,
   Controller,
-  Get,
+  // Get,
   HttpCode,
   HttpStatus,
-  Param,
-  ParseIntPipe,
-  ParseUUIDPipe,
+  // Param,
+  // ParseIntPipe,
+  // ParseUUIDPipe,
   Post,
-  Query,
+  // Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
