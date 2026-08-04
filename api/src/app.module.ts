@@ -17,7 +17,6 @@ import { CartModule } from './modules/cart/cart.module';
     }),
     PrismaModule,
     AuthModule,
-
     ProductsModule,
     CategoriesModule,
     CartModule,
