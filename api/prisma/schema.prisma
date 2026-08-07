@@ -36,6 +36,12 @@ FAILED
 REFUNDED
  }
 
+enum PaymentMethod{
+  COD
+  EASY_PAISA
+  BANK_TRANSFER
+}
+
 
 // USERS Model //
 model User{
@@ -204,7 +210,7 @@ model Payment{
  amount Decimal @db.Decimal(10,2)
  status PaymentStatus @default(PENDING)
  currency String @default("usd")
-paymentMethod String?
+paymentMethod PaymentMethod?
 transactionId String?
 
   userId String
