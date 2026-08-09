@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Header } from "@/components/layout/header/header";
 import { Sidebar } from "@/components/layout/header/sidebar";
 import { AuthProvider } from "@/contexts/auth-context";
+import { Footer } from "@/components/layout/footer/footer";
 
 const ralewayHeading = Raleway({
   subsets: ["latin"],
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <AuthProvider>
           <Header />
           <main className="flex-1">{children}</main>
+          <Footer />
         </AuthProvider>
       </body>
     </html>
