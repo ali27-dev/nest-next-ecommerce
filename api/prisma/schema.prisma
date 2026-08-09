@@ -42,7 +42,17 @@ enum PaymentMethod{
   BANK_TRANSFER
 }
 
+enum Season {
+  SUMMER
+  WINTER
+  ALL_SEASON
+}
 
+enum PieceCount {
+  ONE_PIECE
+  TWO_PIECE
+  THREE_PIECE
+}
 // USERS Model //
 model User{
   id String @id @default(uuid())
@@ -64,10 +74,25 @@ model User{
   @@index([email])
  @@map("users")
 }
- 
+
+
+
+// Model Fabrics \\
+model Fabric {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  products  Product[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([slug])
+  @@map("fabrics")
+}
 
  // PRODUCTS Model //
- model Product{
+model Product{
     id String @id @default(uuid())
     name String
     description String?
@@ -77,24 +102,32 @@ model User{
     imageUrl String?
     isActive Boolean @default(true)
 
-// Relations
+    season Season?
+    pieceCount PieceCount?
+
+    fabricId String?
+    fabric Fabric? @relation(fields: [fabricId], references: [id])
+
     orderItems OrderItem[]
     cartItems CartItem[]
 
     categoryId String
-    category Category @relation(fields: [categoryId],references: [id])
+    category Category @relation(fields: [categoryId], references: [id])
 
-  //  Timestams
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-  @@index([sku])
-  @@index([categoryId])
-  @@index([isActive])
-  @@map("products") // the name of the table
+    @@index([sku])
+    @@index([categoryId])
+    @@index([isActive])
+    @@index([fabricId])
+    @@index([season])
+    @@map("products")
+}
 
 
- }
+
+
 
 // CATEGORY Model //
 model Category {
