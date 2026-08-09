@@ -7,7 +7,9 @@ import {
   IsOptional,
   IsUrl,
   IsBoolean,
+  IsEnum,
 } from 'class-validator';
+import { Season, PieceCount } from '@prisma/client';
 
 export class CreateProductDto {
   @IsString()
@@ -44,4 +46,18 @@ export class CreateProductDto {
 
   @IsUUID('4', { message: 'categoryId must be a valid UUID' })
   categoryId: string;
+
+  @IsOptional()
+  @IsUUID('4', { message: 'fabricId must be a valid UUID' })
+  fabricId?: string;
+
+  @IsOptional()
+  @IsEnum(Season, { message: 'season must be SUMMER, WINTER, or ALL_SEASON' })
+  season?: Season;
+
+  @IsOptional()
+  @IsEnum(PieceCount, {
+    message: 'pieceCount must be ONE_PIECE, TWO_PIECE, or THREE_PIECE',
+  })
+  pieceCount?: PieceCount;
 }

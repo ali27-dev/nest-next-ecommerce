@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseFloatPipe,
   ParseIntPipe,
   ParseUUIDPipe,
   Patch,
@@ -19,6 +20,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CloudinaryService } from 'src/config/cloudinary.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PieceCount, Season } from '@prisma/client';
 
 @Controller('products')
 export class ProductsController {
@@ -29,10 +31,29 @@ export class ProductsController {
 
   @Get()
   findAll(
-    @Query('page', new ParseIntPipe({ optional: true })) page: number,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('categoryId') categoryId?: string,
+    @Query('fabricId') fabricId?: string,
+    @Query('season') season?: Season,
+    @Query('pieceCount') pieceCount?: PieceCount,
+    @Query('minPrice', new ParseFloatPipe({ optional: true }))
+    minPrice?: number,
+    @Query('maxPrice', new ParseFloatPipe({ optional: true }))
+    maxPrice?: number,
+    @Query('sort') sort?: 'price_asc' | 'price_desc' | 'newest',
   ) {
-    return this.productsService.findAll(page, limit);
+    return this.productsService.findAll({
+      page,
+      limit,
+      categoryId,
+      fabricId,
+      season,
+      pieceCount,
+      minPrice,
+      maxPrice,
+      sort,
+    });
   }
 
   @Get(':id')
