@@ -60,4 +60,12 @@ export class CreateProductDto {
     message: 'pieceCount must be ONE_PIECE, TWO_PIECE, or THREE_PIECE',
   })
   pieceCount?: PieceCount;
+
+  @IsOptional()
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    { message: 'Compare-at price must have at most 2 decimal places' },
+  )
+  @Min(0, { message: 'Compare-at price cannot be negative' })
+  compareAtPrice?: number;
 }
