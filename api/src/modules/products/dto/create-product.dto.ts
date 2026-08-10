@@ -8,6 +8,9 @@ import {
   IsUrl,
   IsBoolean,
   IsEnum,
+  IsArray,
+} from 'class-validator';
+import { Season, PieceCount, StitchType } from '@prisma/client';
 } from 'class-validator';
 import { Season, PieceCount } from '@prisma/client';
 
@@ -28,6 +31,14 @@ export class CreateProductDto {
   price: number;
 
   @IsOptional()
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    { message: 'Compare-at price must have at most 2 decimal places' },
+  )
+  @Min(0, { message: 'Compare-at price cannot be negative' })
+  compareAtPrice?: number;
+
+  @IsOptional()
   @IsNumber()
   @Min(0, { message: 'Stock cannot be negative' })
   stock?: number;
@@ -39,6 +50,24 @@ export class CreateProductDto {
   @IsOptional()
   @IsUrl({}, { message: 'Image URL must be a valid URL' })
   imageUrl?: string;
+
+  @IsOptional()
+  @IsUrl({}, { message: 'Secondary image URL must be a valid URL' })
+  secondaryImageUrl?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsUrl({}, { each: true, message: 'Each gallery image must be a valid URL' })
+  galleryImages?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  sizes?: string[];
+
+  @IsOptional()
+  @IsString()
+  color?: string;
 
   @IsOptional()
   @IsBoolean()
@@ -62,6 +91,8 @@ export class CreateProductDto {
   pieceCount?: PieceCount;
 
   @IsOptional()
+  @IsEnum(StitchType, { message: 'stitchType must be STITCHED or UNSTITCHED' })
+  stitchType?: StitchType;
   @IsNumber(
     { maxDecimalPlaces: 2 },
     { message: 'Compare-at price must have at most 2 decimal places' },
