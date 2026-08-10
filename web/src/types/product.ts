@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Category {
   id: string;
   name: string;
@@ -11,6 +12,11 @@ export interface Fabric {
 }
 
 export interface Product {
+  sizes: any;
+  galleryImages: any;
+  compareAtPrice: boolean;
+  color: any;
+  secondaryImageUrl: any;
   id: string;
   name: string;
   description: string | null;
@@ -25,6 +31,7 @@ export interface Product {
   categoryId: string;
   category?: Category;
   fabric?: Fabric;
+  stitchType: string;
 }
 
 export interface ProductListResponse {
