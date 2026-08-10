@@ -8,6 +8,12 @@ import {
   IsUrl,
   IsBoolean,
 } from 'class-validator';
+  IsEnum,
+  IsArray,
+} from 'class-validator';
+import { Season, PieceCount, StitchType } from '@prisma/client';
+} from 'class-validator';
+import { Season, PieceCount } from '@prisma/client';
 
 export class CreateProductDto {
   @IsString()
@@ -70,4 +76,28 @@ export class CreateProductDto {
 
   @IsUUID('4', { message: 'categoryId must be a valid UUID' })
   categoryId: string;
+
+  @IsOptional()
+  @IsUUID('4', { message: 'fabricId must be a valid UUID' })
+  fabricId?: string;
+
+  @IsOptional()
+  @IsEnum(Season, { message: 'season must be SUMMER, WINTER, or ALL_SEASON' })
+  season?: Season;
+
+  @IsOptional()
+  @IsEnum(PieceCount, {
+    message: 'pieceCount must be ONE_PIECE, TWO_PIECE, or THREE_PIECE',
+  })
+  pieceCount?: PieceCount;
+
+  @IsOptional()
+  @IsEnum(StitchType, { message: 'stitchType must be STITCHED or UNSTITCHED' })
+  stitchType?: StitchType;
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    { message: 'Compare-at price must have at most 2 decimal places' },
+  )
+  @Min(0, { message: 'Compare-at price cannot be negative' })
+  compareAtPrice?: number;
 }
