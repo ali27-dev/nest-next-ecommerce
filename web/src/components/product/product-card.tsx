@@ -1,29 +1,45 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { Product } from "@/types/product";
+import { pieceCountLabel } from "@/lib/product-labels";
 import { AddToCartButton } from "./add-to-cart-button";
 
 export function ProductCard({ product }: { product: Product }) {
+  const [hovered, setHovered] = useState(false);
+  const showSecondary = hovered && product.secondaryImageUrl;
+  const piece = pieceCountLabel(product.pieceCount);
+  const hasDiscount =
+    product.compareAtPrice &&
+    Number(product.compareAtPrice) > Number(product.price);
+  const discountPercent = hasDiscount
+    ? Math.round(
+        (1 - Number(product.price) / Number(product.compareAtPrice)) * 100
+      )
+    : null;
+
   return (
-    <div className="group relative">
+    <div
+      className="group relative"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <Link
         href={`/products/${product.id}`}
         className="block relative aspect-[3/4] bg-muted overflow-hidden rounded-lg"
       >
-        {product.imageUrl ? (
+        {product.imageUrl && (
           <img
-            src={product.imageUrl}
+            src={showSecondary ? product.secondaryImageUrl! : product.imageUrl}
             alt={product.name}
-            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="h-full w-full object-cover transition-opacity duration-200"
           />
-        ) : (
-          <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm">
-            No image
-          </div>
         )}
 
-        {product.stock <= 5 && product.stock > 0 && (
+        {hasDiscount && (
           <span className="absolute top-3 left-3 bg-destructive text-destructive-foreground text-xs font-medium px-2 py-1 rounded">
-            Low stock
+            {discountPercent}% OFF
           </span>
         )}
         {product.stock === 0 && (
@@ -33,7 +49,6 @@ export function ProductCard({ product }: { product: Product }) {
         )}
       </Link>
 
-      {/* Floating add-to-cart button, overlaid bottom-right on the image, like the reference */}
       <div className="absolute bottom-3 right-3">
         <AddToCartButton
           productId={product.id}
@@ -46,12 +61,18 @@ export function ProductCard({ product }: { product: Product }) {
         <Link href={`/products/${product.id}`}>
           <p className="text-sm font-medium truncate">{product.name}</p>
         </Link>
-        <p className="text-sm font-mono font-medium mt-1">
-          Rs {Number(product.price).toLocaleString()}
-        </p>
-        {/* Coming soon: strikethrough original price + discount badge —
-            requires adding a compareAtPrice field to the Product schema,
-            which doesn't exist yet. */}
+        {piece && <p className="text-xs text-muted-foreground">{piece}</p>}
+
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-sm font-mono font-medium">
+            Rs {Number(product.price).toLocaleString()}
+          </p>
+          {hasDiscount && (
+            <p className="text-xs font-mono text-muted-foreground line-through">
+              Rs {Number(product.compareAtPrice).toLocaleString()}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
