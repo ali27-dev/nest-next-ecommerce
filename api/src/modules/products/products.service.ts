@@ -6,6 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Prisma, Season, PieceCount } from '@prisma/client';
 
 @Injectable()
 export class ProductsService {
@@ -15,7 +16,6 @@ export class ProductsService {
     const existingSku = await this.prisma.product.findUnique({
       where: { sku: createProductDto.sku },
     });
-
     if (existingSku) {
       throw new ConflictException('A product with this SKU already exists');
     }
@@ -23,9 +23,17 @@ export class ProductsService {
     const category = await this.prisma.category.findUnique({
       where: { id: createProductDto.categoryId },
     });
-
     if (!category) {
       throw new NotFoundException('Category not found');
+    }
+
+    if (createProductDto.fabricId) {
+      const fabric = await this.prisma.fabric.findUnique({
+        where: { id: createProductDto.fabricId },
+      });
+      if (!fabric) {
+        throw new NotFoundException('Fabric not found');
+      }
     }
 
     return this.prisma.product.create({
@@ -34,20 +42,61 @@ export class ProductsService {
   }
 
   // Pagination Logic \\
-  async findAll(page = 1, limit = 20) {
+  async findAll(params: {
+    page?: number;
+    limit?: number;
+    categoryId?: string;
+    fabricId?: string;
+    season?: Season;
+    pieceCount?: PieceCount;
+    minPrice?: number;
+    maxPrice?: number;
+    sort?: 'price_asc' | 'price_desc' | 'newest';
+  }) {
+    const {
+      page = 1,
+      limit = 20,
+      categoryId,
+      fabricId,
+      season,
+      pieceCount,
+      minPrice,
+      maxPrice,
+      sort = 'newest',
+    } = params;
+
     const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = {
+      isActive: true,
+      ...(categoryId && { categoryId }),
+      ...(fabricId && { fabricId }),
+      ...(season && { season }),
+      ...(pieceCount && { pieceCount }),
+      ...((minPrice !== undefined || maxPrice !== undefined) && {
+        price: {
+          ...(minPrice !== undefined && { gte: minPrice }),
+          ...(maxPrice !== undefined && { lte: maxPrice }),
+        },
+      }),
+    };
+
+    const orderBy: Prisma.ProductOrderByWithRelationInput =
+      sort === 'price_asc'
+        ? { price: 'asc' }
+        : sort === 'price_desc'
+          ? { price: 'desc' }
+          : { createdAt: 'desc' };
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
+        where,
+        orderBy,
         skip,
         take: limit,
-        where: { isActive: true },
-        include: { category: true },
-        orderBy: { createdAt: 'desc' },
+        include: { category: true, fabric: true },
       }),
-      this.prisma.product.count({
-        where: { isActive: true },
-      }),
+      this.prisma.product.count({ where }),
     ]);
 
     return {
@@ -55,7 +104,6 @@ export class ProductsService {
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   }
-
   // Find One product \\
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({

@@ -11,6 +11,8 @@ import {
   IsArray,
 } from 'class-validator';
 import { Season, PieceCount, StitchType } from '@prisma/client';
+} from 'class-validator';
+import { Season, PieceCount } from '@prisma/client';
 
 export class CreateProductDto {
   @IsString()
@@ -91,4 +93,10 @@ export class CreateProductDto {
   @IsOptional()
   @IsEnum(StitchType, { message: 'stitchType must be STITCHED or UNSTITCHED' })
   stitchType?: StitchType;
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    { message: 'Compare-at price must have at most 2 decimal places' },
+  )
+  @Min(0, { message: 'Compare-at price cannot be negative' })
+  compareAtPrice?: number;
 }
