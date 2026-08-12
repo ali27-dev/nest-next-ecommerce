@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { X, LogOut, LogIn, HelpCircle, Phone } from "lucide-react";
-import { categories } from "@/lib/nav-links";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
+import { getCategoryIcon } from "@/lib/category-icons";
+import type { Category } from "@/types/product";
 
 interface NavDrawerProps {
   open: boolean;
   onClose: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  categories: Category[];
 }
 
 export function NavDrawer({
@@ -18,6 +20,7 @@ export function NavDrawer({
   onClose,
   onMouseEnter,
   onMouseLeave,
+  categories,
 }: NavDrawerProps) {
   const { isLoggedIn, logout } = useAuth();
 
@@ -41,7 +44,7 @@ export function NavDrawer({
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between h-14 px-5 border-b">
+        <div className="flex items-center justify-between h-14 px-5 border-b shrink-0">
           <span className="font-semibold text-lg">Menu</span>
           <button
             onClick={onClose}
