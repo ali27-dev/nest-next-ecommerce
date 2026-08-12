@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { X, LogOut, LogIn, HelpCircle, Phone } from "lucide-react";
-import { categories } from "@/lib/nav-links";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
+import { getCategoryIcon } from "@/lib/category-icons";
+import type { Category } from "@/types/product";
 
 interface NavDrawerProps {
   open: boolean;
   onClose: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  categories: Category[];
 }
 
 export function NavDrawer({
@@ -18,6 +20,7 @@ export function NavDrawer({
   onClose,
   onMouseEnter,
   onMouseLeave,
+  categories,
 }: NavDrawerProps) {
   const { isLoggedIn, logout } = useAuth();
 
@@ -41,7 +44,7 @@ export function NavDrawer({
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between h-14 px-5 border-b">
+        <div className="flex items-center justify-between h-14 px-5 border-b shrink-0">
           <span className="font-semibold text-lg">Menu</span>
           <button
             onClick={onClose}
@@ -52,6 +55,7 @@ export function NavDrawer({
           </button>
         </div>
 
+<<<<<<< Updated upstream
         <nav className="flex flex-col py-2 overflow-y-auto">
           {categories.map(({ label, href, icon: Icon }) => (
             <Link
@@ -64,6 +68,26 @@ export function NavDrawer({
               {label}
             </Link>
           ))}
+=======
+        <nav className="flex-1 overflow-y-auto" aria-label="Shop by category">
+          <ul className="flex flex-col py-2 list-none m-0 p-0">
+            {categories.map((category) => {
+              const Icon = getCategoryIcon(category.slug);
+              return (
+                <li key={category.id}>
+                  <Link
+                    href={`/category/${category.id}`}
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-5 py-3 text-base hover:bg-accent transition-colors"
+                  >
+                    <Icon className="h-5 w-5 text-muted-foreground" />
+                    {category.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+>>>>>>> Stashed changes
         </nav>
 
         <div className="mt-auto border-t py-2">
