@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { TopUtilityBar } from "@/components/layout/header/top-utility-bar";
-import { MainNavBar } from "@/components/layout/header/main-nav-bar";
-import { SearchOverlay } from "@/components/layout/header/search-overlay";
-import { ContactCard } from "@/components/layout/header/contact-card";
+import { TopUtilityBar } from "./top-utility-bar";
+import { MainNavBar } from "./main-nav-bar";
+import { SearchOverlay } from "./search-overlay";
+import { ContactCard } from "./contact-card";
+import type { Category } from "@/types/product";
 
-export function Header() {
+export function Header({ categories }: { categories: Category[] }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
@@ -16,7 +17,7 @@ export function Header() {
         onSearchClick={() => setSearchOpen((s) => !s)}
         onContactClick={() => setContactOpen(true)}
       />
-      <MainNavBar />
+      <MainNavBar categories={categories} />
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
       <ContactCard open={contactOpen} onClose={() => setContactOpen(false)} />
     </header>

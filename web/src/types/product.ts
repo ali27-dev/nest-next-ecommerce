@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ReactNode } from "react";
+import { Key } from "readline";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Category {
+  href: Key | null | undefined;
+  label: ReactNode;
   id: string;
   name: string;
   slug: string;

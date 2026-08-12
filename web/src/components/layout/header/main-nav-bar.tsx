@@ -1,21 +1,37 @@
+// src/components/layout/header/main-nav-bar.tsx
 "use client";
 
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { NavItem } from "@/components/layout/header/nav-item";
-import { categories } from "@/lib/nav-links";
+import { NavItem } from "./nav-item";
 import { useHoverIntent } from "@/hooks/use-hover-intent";
-import { NavDrawer } from "@/components/layout/header/nav-drawer";
-import { useState } from "react";
+import { NavDrawer } from "./nav-drawer";
+import { useRef, useState } from "react";
+import type { Category } from "@/types/product";
 
-export function MainNavBar() {
+export function MainNavBar({ categories }: { categories: Category[] }) {
   const { open: hovered, show, hide, forceClose } = useHoverIntent();
   const [pinned, setPinned] = useState(false);
+  const suppressHoverRef = useRef(false);
   const drawerOpen = hovered || pinned;
 
   function closeDrawer() {
     setPinned(false);
     forceClose();
+
+    // The drawer panel sits above the hamburger button, so closing it while
+    // the cursor rests in that spot can trigger a fresh mouseenter on the
+    // button underneath, instantly reopening it. Briefly ignore hover after
+    // any programmatic close to prevent that loop.
+    suppressHoverRef.current = true;
+    setTimeout(() => {
+      suppressHoverRef.current = false;
+    }, 400);
+  }
+
+  function guardedShow() {
+    if (suppressHoverRef.current) return;
+    show();
   }
 
   return (
@@ -25,36 +41,35 @@ export function MainNavBar() {
           variant="ghost"
           size="icon"
           className="h-12 w-12"
-          onMouseEnter={show}
+          onMouseEnter={guardedShow}
           onMouseLeave={hide}
           onClick={() => setPinned((p) => !p)}
           aria-label="Open menu"
           aria-expanded={drawerOpen}
         >
-          <Menu className="h-10 w-10" />
+          <Menu className="h-7 w-7" />
         </Button>
-
         <nav
           className="hidden md:flex items-center justify-center"
           aria-label="Main categories"
         >
           <ul className="flex items-center gap-8 list-none m-0 p-0">
             {categories.map((category) => (
-              <li key={category.href}>
+              <li key={category.id}>
                 <NavItem category={category} />
               </li>
             ))}
           </ul>
         </nav>
 
-        {/* Spacer matching the hamburger's width, so the nav visually centers in the full bar */}
         <div className="h-12 w-12" aria-hidden="true" />
       </div>
 
       <NavDrawer
         open={drawerOpen}
         onClose={closeDrawer}
-        onMouseEnter={show}
+        categories={categories}
+        onMouseEnter={guardedShow}
         onMouseLeave={hide}
       />
     </div>

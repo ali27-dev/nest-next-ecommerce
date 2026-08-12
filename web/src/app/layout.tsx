@@ -6,6 +6,8 @@ import { Header } from "@/components/layout/header/header";
 import { Sidebar } from "@/components/layout/header/sidebar";
 import { AuthProvider } from "@/contexts/auth-context";
 import { Footer } from "@/components/layout/footer/footer";
+import { Category } from "@/types/product";
+import { apiFetch } from "@/lib/api";
 
 const ralewayHeading = Raleway({
   subsets: ["latin"],
@@ -22,24 +24,16 @@ export const metadata: Metadata = {
   description: "Menswear, womenswear, watches, shoes, and perfumes.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const categories = await apiFetch<Category[]>("/categories");
+
   return (
-    <html
-      lang="en"
-      className={cn(
-        "h-full",
-        "antialiased",
-        geistMono.variable,
-        "font-sans",
-        outfit.variable,
-        ralewayHeading.variable
-      )}
-    >
+    <html lang="en" className={cn(/* unchanged */)}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <Header />
+          <Header categories={categories} />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer categories={categories} />
         </AuthProvider>
       </body>
     </html>
