@@ -52,18 +52,21 @@ export function NavDrawer({
           </button>
         </div>
 
-        <nav className="flex flex-col py-2 overflow-y-auto">
-          {categories.map(({ label, href, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={onClose}
-              className="flex items-center gap-3 px-5 py-3 text-base hover:bg-accent transition-colors"
-            >
-              <Icon className="h-5 w-5 text-muted-foreground" />
-              {label}
-            </Link>
-          ))}
+        <nav className="overflow-y-auto" aria-label="Shop by category">
+          <ul className="flex flex-col py-2 list-none m-0 p-0">
+            {categories.map(({ label, href, icon: Icon }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  onClick={onClose}
+                  className="flex items-center gap-3 px-5 py-3 text-base hover:bg-accent transition-colors"
+                >
+                  <Icon className="h-5 w-5 text-muted-foreground" />
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
 
         <div className="mt-auto border-t py-2">

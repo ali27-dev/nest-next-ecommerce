@@ -17,7 +17,6 @@ export default async function Home() {
   return (
     <div>
       <HeroCarousel categories={categories} />
-
       {categories.map((category, i) => (
         <CategoryCarousel
           key={category.id}

@@ -14,6 +14,8 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
 
   const requiresSize = product.sizes.length > 0;
   const canAddToCart = product.stock > 0 && (!requiresSize || size !== null);
+  const unitPrice = Number(product.price);
+  const totalPrice = unitPrice * quantity;
 
   function handleAddToCart() {
     if (!isLoggedIn) {
@@ -43,8 +45,9 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            className="h-10 w-10 rounded-md border flex items-center justify-center hover:bg-accent"
+            className="h-10 w-10 rounded-md border flex items-center justify-center hover:bg-accent disabled:opacity-40"
             aria-label="Decrease quantity"
+            disabled={quantity <= 1}
           >
             <Minus className="h-4 w-4" />
           </button>
@@ -53,12 +56,25 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
           </span>
           <button
             onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-            className="h-10 w-10 rounded-md border flex items-center justify-center hover:bg-accent"
+            className="h-10 w-10 rounded-md border flex items-center justify-center hover:bg-accent disabled:opacity-40"
             aria-label="Increase quantity"
+            disabled={quantity >= product.stock}
           >
             <Plus className="h-4 w-4" />
           </button>
         </div>
+      </div>
+
+      <div className="flex items-baseline gap-2">
+        <span className="text-sm text-muted-foreground">Total:</span>
+        <span className="text-xl font-mono font-semibold">
+          Rs {totalPrice.toLocaleString()}
+        </span>
+        {quantity > 1 && (
+          <span className="text-xs text-muted-foreground">
+            (Rs {unitPrice.toLocaleString()} × {quantity})
+          </span>
+        )}
       </div>
 
       <Button

@@ -34,10 +34,17 @@ export function MainNavBar() {
           <Menu className="h-10 w-10" />
         </Button>
 
-        <nav className="hidden md:flex items-center justify-center gap-8">
-          {categories.map((category) => (
-            <NavItem key={category.href} category={category} />
-          ))}
+        <nav
+          className="hidden md:flex items-center justify-center"
+          aria-label="Main categories"
+        >
+          <ul className="flex items-center gap-8 list-none m-0 p-0">
+            {categories.map((category) => (
+              <li key={category.href}>
+                <NavItem category={category} />
+              </li>
+            ))}
+          </ul>
         </nav>
 
         {/* Spacer matching the hamburger's width, so the nav visually centers in the full bar */}
