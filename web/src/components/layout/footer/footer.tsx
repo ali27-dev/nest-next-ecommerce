@@ -19,7 +19,7 @@ const paymentMethods = ["Cash on Delivery", "EasyPaisa", "Bank Transfer"];
 export function Footer({ categories }: { categories: Category[] }) {
   return (
     <footer className="w-full border-t bg-background mt-16">
-      <div className="mx-auto max-w-7xl px-6 md:px-10 py-12">
+      <div className="px-6 md:px-10 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand column */}
           <div>

@@ -49,13 +49,14 @@ export function MainNavBar({ categories }: { categories: Category[] }) {
         >
           <Menu className="h-7 w-7" />
         </Button>
+
         <nav
           className="hidden md:flex items-center justify-center"
           aria-label="Main categories"
         >
           <ul className="flex items-center gap-8 list-none m-0 p-0">
             {categories.map((category) => (
-              <li key={category.id}>
+              <li key={category.href}>
                 <NavItem category={category} />
               </li>
             ))}

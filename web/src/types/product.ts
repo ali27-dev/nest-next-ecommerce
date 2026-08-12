@@ -1,10 +1,10 @@
-<<<<<<< Updated upstream
-=======
 import { ReactNode } from "react";
 import { Key } from "readline";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
->>>>>>> Stashed changes
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface Category {
   href: Key | null | undefined;
   label: ReactNode;
@@ -20,6 +20,11 @@ export interface Fabric {
 }
 
 export interface Product {
+  sizes: any;
+  galleryImages: any;
+  compareAtPrice: boolean;
+  color: any;
+  secondaryImageUrl: any;
   id: string;
   name: string;
   description: string | null;
@@ -34,6 +39,7 @@ export interface Product {
   categoryId: string;
   category?: Category;
   fabric?: Fabric;
+  stitchType: string;
 }
 
 export interface ProductListResponse {
