@@ -82,7 +82,7 @@ export function ProductCard({ product }: { product: Product }) {
 
       <div className="absolute bottom-[4.5rem] right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <AddToCartButton
-          productId={product.id}
+          product={product}
           disabled={product.stock === 0}
           variant="icon"
         />

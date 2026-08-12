@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { Footer } from "@/components/layout/footer/footer";
 import { Category } from "@/types/product";
 import { apiFetch } from "@/lib/api";
+import { CartProvider } from "@/contexts/cart-context";
 
 const ralewayHeading = Raleway({
   subsets: ["latin"],
@@ -31,9 +32,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={cn(/* unchanged */)}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <Header categories={categories} />
-          <main className="flex-1">{children}</main>
-          <Footer categories={categories} />
+          <CartProvider>
+            <Header categories={categories} />
+            <main className="flex-1">{children}</main>
+            <Footer categories={categories} />
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>
