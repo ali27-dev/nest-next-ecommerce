@@ -49,6 +49,7 @@ export function MainNavBar({ categories }: { categories: Category[] }) {
         >
           <Menu className="h-7 w-7" />
         </Button>
+
         <nav
           className="hidden md:flex items-center justify-center"
           aria-label="Main categories"
