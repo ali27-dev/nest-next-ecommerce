@@ -4,13 +4,14 @@ import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SizeSelector } from "./size-selector";
-import { useAuth } from "@/contexts/auth-context";
+import { useCart } from "@/contexts/cart-context";
 import { Product } from "@/types/product";
 
 export function ProductPurchasePanel({ product }: { product: Product }) {
-  const { isLoggedIn } = useAuth();
+  const { addItem } = useCart();
   const [size, setSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [justAdded, setJustAdded] = useState(false);
 
   const requiresSize = product.sizes.length > 0;
   const canAddToCart = product.stock > 0 && (!requiresSize || size !== null);
@@ -18,22 +19,10 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
   const totalPrice = unitPrice * quantity;
 
   function handleAddToCart() {
-    if (!isLoggedIn) {
-      alert("Please log in to add items to your cart.");
-      return;
-    }
-    if (requiresSize && !size) {
-      alert("Please select a size.");
-      return;
-    }
-    // Coming soon: real POST /cart/items call with { productId, quantity, size }
-    // once the backend CartItem model supports a size field and the login
-    // page is wired to store a real access token.
-    alert(
-      `Add to cart: ${product.name}, size ${
-        size ?? "N/A"
-      }, qty ${quantity} — coming soon.`
-    );
+    if (requiresSize && !size) return;
+    addItem(product, quantity, size);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 2000);
   }
 
   return (
@@ -82,7 +71,11 @@ export function ProductPurchasePanel({ product }: { product: Product }) {
         disabled={!canAddToCart}
         className="h-12 text-base"
       >
-        {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+        {product.stock === 0
+          ? "Out of Stock"
+          : justAdded
+          ? "Added ✓"
+          : "Add to Cart"}
       </Button>
     </div>
   );

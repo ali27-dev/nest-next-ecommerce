@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Phone, MessageCircle, Search, User, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "../container";
+import { useCart } from "@/contexts/cart-context";
 
 interface TopUtilityBarProps {
   onSearchClick: () => void;
@@ -14,6 +15,7 @@ export function TopUtilityBar({
   onSearchClick,
   onContactClick,
 }: TopUtilityBarProps) {
+  const { totalItems } = useCart();
   return (
     <div className="w-full border-b bg-background">
       <Container>
@@ -59,9 +61,19 @@ export function TopUtilityBar({
                 <User className="h-7 w-7" />
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12" asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-12 w-12 relative"
+              asChild
+            >
               <Link href="/cart" aria-label="View cart">
                 <ShoppingCart className="h-7 w-7" />
+                {totalItems > 0 && (
+                  <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-medium flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
               </Link>
             </Button>
           </div>
