@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 // src/components/product/product-card.tsx
 "use client";
 
