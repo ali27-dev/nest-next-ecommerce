@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Phone, MessageCircle, Search, User, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/cart-context";
+import { useAuth } from "@/contexts/auth-context";
 
 interface TopUtilityBarProps {
   onSearchClick: () => void;
@@ -15,6 +16,7 @@ export function TopUtilityBar({
   onSearchClick,
   onContactClick,
 }: TopUtilityBarProps) {
+  const { isLoggedIn } = useAuth();
   const { totalItems } = useCart();
 
   return (
@@ -62,10 +64,14 @@ export function TopUtilityBar({
             className="h-10 w-10 sm:h-12 sm:w-12"
             asChild
           >
-            <Link href="/account" aria-label="Account">
+            <Link
+              href={isLoggedIn ? "/account" : "/login"}
+              aria-label="Account"
+            >
               <User className="h-5 w-5 sm:h-7 sm:w-7" />
             </Link>
           </Button>
+
           <Button
             variant="ghost"
             size="icon"
