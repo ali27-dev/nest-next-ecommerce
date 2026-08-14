@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
@@ -7,15 +8,6 @@ import { useAuth } from "@/contexts/auth-context";
 export function CartSummary() {
   const { subtotal, totalItems } = useCart();
   const { isLoggedIn } = useAuth();
-
-  function handleCheckout() {
-    if (!isLoggedIn) {
-      alert("Please log in to check out.");
-      return;
-    }
-    // Coming soon: real POST /orders/checkout call once login exists.
-    alert("Checkout — coming soon.");
-  }
 
   return (
     <div className="border rounded-xl p-5 h-fit">
@@ -37,12 +29,10 @@ export function CartSummary() {
         <span className="font-mono">Rs {subtotal.toLocaleString()}</span>
       </div>
 
-      <Button
-        onClick={handleCheckout}
-        disabled={totalItems === 0}
-        className="w-full h-12"
-      >
-        Checkout
+      <Button asChild disabled={totalItems === 0} className="w-full h-12">
+        <Link href={isLoggedIn ? "/checkout" : "/login?redirect=/checkout"}>
+          Checkout
+        </Link>
       </Button>
     </div>
   );

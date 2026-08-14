@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { Product } from "@/types/product";
 
 export interface CartLine {
@@ -24,13 +30,37 @@ interface CartContextValue {
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
+const CART_STORAGE_KEY = "farzara_cart";
 
-// Coming soon: replace this in-memory state with a real fetch from
-// GET /cart on mount (once logged in), and route addItem/updateQuantity/
-// removeItem through POST /cart/items, PATCH /cart/items/:id, and
-// DELETE /cart/items/:id instead of local state.
+// Coming soon: sync this to the real GET/POST/PATCH/DELETE /cart endpoints
+// so the cart persists across devices, not just this browser. localStorage
+// is a same-device, client-only fix for the "cart disappears on refresh"
+// problem in the meantime.
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Load persisted cart once, on first mount in the browser
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      if (stored) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLines(JSON.parse(stored));
+      }
+    } catch {
+      localStorage.removeItem(CART_STORAGE_KEY);
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist on every change, but only after the initial load above has
+  // run — otherwise this would fire once with the empty initial state and
+  // immediately overwrite whatever was saved before the load even happens.
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(lines));
+  }, [lines, hydrated]);
 
   function addItem(product: Product, quantity: number, size: string | null) {
     setLines((prev) => {

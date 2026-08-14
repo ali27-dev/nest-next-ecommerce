@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { getCategoryIcon } from "@/lib/category-icons";
 import type { Category } from "@/types/product";
+import { useCart } from "@/contexts/cart-context";
 
 interface NavDrawerProps {
   open: boolean;
@@ -22,6 +23,7 @@ export function NavDrawer({
   onMouseLeave,
   categories,
 }: NavDrawerProps) {
+  const { clear: clearCart } = useCart();
   const { isLoggedIn, logout } = useAuth();
 
   return (
@@ -95,6 +97,7 @@ export function NavDrawer({
               onClick={() => {
                 logout();
                 onClose();
+                clearCart();
               }}
               className="flex w-full items-center gap-3 px-5 py-3 text-sm text-destructive hover:bg-accent transition-colors"
             >

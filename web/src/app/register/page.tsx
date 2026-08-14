@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Spinner } from "@/components/ui/spinner";
 
 // Mirrors the backend's RegisterDto @Matches regex exactly, so users get
 // instant feedback instead of a round trip to the API for a weak password.
@@ -128,6 +129,7 @@ export default function RegisterPage() {
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button type="submit" disabled={loading} className="h-11 mt-2">
+            {loading && <Spinner className="mr-2" />}
             {loading ? "Creating account..." : "Sign Up"}
           </Button>
         </form>

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -31,6 +32,8 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
+
+  const expired = searchParams.get("expired") === "1";
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-6">
@@ -69,8 +72,13 @@ export default function LoginPage() {
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
-
+          {expired && (
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
+              Your session expired. Please log in again to continue.
+            </p>
+          )}
           <Button type="submit" disabled={loading} className="h-11 mt-2">
+            {loading && <Spinner className="mr-2" />}
             {loading ? "Logging in..." : "Log In"}
           </Button>
         </form>
