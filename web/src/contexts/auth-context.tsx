@@ -7,6 +7,7 @@ import {
   useState,
   ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { apiPost } from "@/lib/api";
 
 interface AuthUser {
@@ -46,10 +47,8 @@ const USER_KEY = "farzara_user";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const router = useRouter();
 
-  // Coming soon: replace this cached-user approach with a real GET /auth/me
-  // (or decoding the JWT) once that endpoint exists — right now we simply
-  // trust whatever user object login/register last returned.
   useEffect(() => {
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     const storedUser = localStorage.getItem(USER_KEY);
@@ -88,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     setUser(null);
-    window.location.href = "/";
+    router.push("/");
   }
 
   return (

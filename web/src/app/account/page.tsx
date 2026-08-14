@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
+import Link from "next/link";
 
 export default function AccountPage() {
   const { user, isLoggedIn, logout } = useAuth();
@@ -38,11 +39,11 @@ export default function AccountPage() {
         </div>
       </div>
 
-      {/* Coming soon: order history (GET /orders), editable profile fields,
-          saved addresses. This page currently only confirms the session
-          and provides a way to log out. */}
-      <p className="text-sm text-muted-foreground mt-6">
-        Order history and profile editing are coming soon.
+      <Button asChild variant="outline" className="mt-6 h-11 w-full">
+        <Link href="/orders">View Order History</Link>
+      </Button>
+      <p className="text-sm text-muted-foreground mt-3">
+        Profile editing is coming soon.
       </p>
 
       <Button onClick={logout} variant="outline" className="mt-6 h-11">
