@@ -69,3 +69,20 @@ export async function apiAuthPost<T>(path: string, body?: unknown): Promise<T> {
   });
   return parseResponse<T>(res);
 }
+
+// Admin \\
+export async function apiAuthPatch<T>(
+  path: string,
+  body?: unknown
+): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getAccessToken()}`,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+  });
+  return parseResponse<T>(res);
+}

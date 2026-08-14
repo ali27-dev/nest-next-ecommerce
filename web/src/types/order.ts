@@ -24,4 +24,5 @@ export interface Payment {
   paymentMethod: string;
   transactionId: string | null;
   orderId: string;
+  order?: Order;
 }
