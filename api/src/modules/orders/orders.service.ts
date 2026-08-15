@@ -121,4 +121,18 @@ export class OrdersService {
       });
     });
   }
+
+  // Admin \\
+  async findAllAdmin() {
+    return this.prisma.order.findMany({
+      include: {
+        orderItems: { include: { product: true } },
+        payment: true,
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

@@ -12,6 +12,9 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { GetUser } from 'src/common/get-user.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Role } from '@prisma/client';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -26,6 +29,13 @@ export class OrdersController {
   @Get()
   findAll(@GetUser('id') userId: string) {
     return this.ordersService.findAll(userId);
+  }
+
+  @Get('admin/all')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  findAllAdmin() {
+    return this.ordersService.findAllAdmin();
   }
 
   @Get(':id')
