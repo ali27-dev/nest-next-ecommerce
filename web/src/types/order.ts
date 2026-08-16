@@ -26,3 +26,20 @@ export interface Payment {
   orderId: string;
   order?: Order;
 }
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  status: string;
+  totalAmount: string;
+  shippingAddress: string | null;
+  createdAt: string;
+  orderItems: OrderItem[];
+  payment?: Payment | null;
+  user?: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+  };
+}

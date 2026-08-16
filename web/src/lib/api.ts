@@ -86,3 +86,25 @@ export async function apiAuthPatch<T>(
   });
   return parseResponse<T>(res);
 }
+
+export async function apiAuthDelete<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${getAccessToken()}` },
+    cache: "no-store",
+  });
+  return parseResponse<T>(res);
+}
+
+export async function apiAuthUpload<T>(
+  path: string,
+  formData: FormData
+): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${getAccessToken()}` }, // no Content-Type — browser sets the multipart boundary
+    body: formData,
+    cache: "no-store",
+  });
+  return parseResponse<T>(res);
+}
