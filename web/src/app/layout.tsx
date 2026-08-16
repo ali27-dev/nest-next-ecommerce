@@ -10,6 +10,7 @@ import { Category } from "@/types/product";
 import { apiFetch } from "@/lib/api";
 import { CartProvider } from "@/contexts/cart-context";
 import { QuickAddProvider } from "@/contexts/quick-add-context";
+import { SiteChrome } from "@/components/layout/site-chrome";
 
 const ralewayHeading = Raleway({
   subsets: ["latin"],
@@ -35,9 +36,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <AuthProvider>
           <CartProvider>
             <QuickAddProvider>
-              <Header categories={categories} />
-              <main className="flex-1">{children}</main>
-              <Footer categories={categories} />
+              <SiteChrome categories={categories}>{children}</SiteChrome>
             </QuickAddProvider>
           </CartProvider>
         </AuthProvider>

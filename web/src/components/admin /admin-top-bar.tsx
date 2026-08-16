@@ -1,16 +1,27 @@
+// src/components/admin/admin-top-bar.tsx
 "use client";
 
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { AdminMobileNav } from "@/app/admin/admin-mobile-nav";
 
 export function AdminTopBar() {
   const { user } = useAuth();
+  const router = useRouter();
 
   return (
-    <header className="h-16 border-b bg-background flex items-center justify-between px-6 md:px-8">
-      <span className="text-sm text-muted-foreground md:hidden font-medium">
-        Farzara Admin
-      </span>
-      <span className="hidden md:block" />
+    <header className="h-16 border-b bg-background flex items-center justify-between px-4 sm:px-6 md:px-8">
+      <div className="flex items-center gap-3">
+        <AdminMobileNav />
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Back</span>
+        </button>
+      </div>
 
       <div className="flex items-center gap-3">
         <div className="text-right">
