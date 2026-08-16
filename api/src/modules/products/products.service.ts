@@ -138,6 +138,21 @@ export class ProductsService {
 
   async remove(id: string) {
     await this.findOne(id); // throws 404 if not found
+
+    const orderItemCount = await this.prisma.orderItem.count({
+      where: { productId: id },
+    });
+
+    if (orderItemCount > 0) {
+      // This product has real order history — deleting it would break past
+      // orders' referential integrity. Deactivate instead, same as any real
+      // e-commerce platform does for discontinued products that were ever sold.
+      return this.prisma.product.update({
+        where: { id },
+        data: { isActive: false },
+      });
+    }
+
     return this.prisma.product.delete({ where: { id } });
   }
 }
