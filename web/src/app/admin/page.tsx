@@ -35,10 +35,9 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-1">Dashboard</h1>
-      <p className="text-sm text-muted-foreground mb-6">
+      <h1 className="text-sm text-muted-foreground mb-6">
         Overview of your store
-      </p>
+      </h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard

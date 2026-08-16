@@ -8,12 +8,17 @@ import { Product, ProductListResponse } from "@/types/product";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/spinner";
+import { ConfirmDialog } from "@/components/admin /confirm-dialog";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   function load() {
     apiFetch<ProductListResponse>("/products?limit=100").then((r) =>
@@ -23,22 +28,18 @@ export default function AdminProductsPage() {
 
   useEffect(load, []);
 
-  async function handleDelete(id: string, name: string) {
-    if (
-      !confirm(
-        `Delete "${name}"? If this product has order history, it will be deactivated instead of permanently deleted.`
-      )
-    )
-      return;
-    setDeletingId(id);
+  async function confirmDelete() {
+    if (!confirmTarget) return;
+    setDeletingId(confirmTarget.id);
     setError(null);
     try {
-      await apiAuthDelete(`/products/${id}`);
+      await apiAuthDelete(`/products/${confirmTarget.id}`);
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete product");
     } finally {
       setDeletingId(null);
+      setConfirmTarget(null);
     }
   }
 
@@ -73,7 +74,10 @@ export default function AdminProductsPage() {
 
       <div className="border rounded-xl divide-y bg-background">
         {filtered.map((product) => (
-          <div key={product.id} className="flex items-center gap-4 p-4">
+          <div
+            key={product.id}
+            className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-4"
+          >
             <div className="h-14 w-12 rounded-md overflow-hidden bg-muted shrink-0">
               {product.imageUrl && (
                 <img
@@ -84,26 +88,26 @@ export default function AdminProductsPage() {
               )}
             </div>
 
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1 basis-full sm:basis-auto">
               <p className="text-sm font-medium truncate flex items-center gap-2">
                 {product.name}
                 {!product.isActive && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
                     Inactive
                   </span>
                 )}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground truncate">
                 {product.category?.name ?? "—"} · SKU {product.sku}
               </p>
             </div>
 
-            <p className="text-sm font-mono w-24 text-right shrink-0">
+            <p className="text-sm font-mono w-20 shrink-0">
               Rs {Number(product.price).toLocaleString()}
             </p>
 
             <span
-              className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${
+              className={`text-xs font-medium px-2 py-1 rounded-full shrink-0 ${
                 product.stock > 0
                   ? "bg-green-100 text-green-800"
                   : "bg-red-100 text-red-800"
@@ -112,15 +116,16 @@ export default function AdminProductsPage() {
               {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
             </span>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 ml-auto sm:ml-0">
               <Button asChild size="sm" variant="outline">
                 <Link href={`/admin/products/${product.id}`}>Edit</Link>
               </Button>
               <Button
                 size="sm"
                 variant="outline"
-                disabled={deletingId === product.id}
-                onClick={() => handleDelete(product.id, product.name)}
+                onClick={() =>
+                  setConfirmTarget({ id: product.id, name: product.name })
+                }
                 className="text-destructive hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" />
@@ -134,6 +139,15 @@ export default function AdminProductsPage() {
           </p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={Boolean(confirmTarget)}
+        title="Delete product?"
+        description={`"${confirmTarget?.name}" will be permanently deleted, or deactivated if it has order history.`}
+        loading={deletingId !== null}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }

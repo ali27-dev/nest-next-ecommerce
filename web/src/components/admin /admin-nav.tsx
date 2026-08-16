@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+export const adminNavItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { label: "Products", href: "/admin/products", icon: Package },
@@ -26,7 +26,7 @@ export function AdminNavList({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <ul className="flex flex-col gap-1 list-none m-0 px-3">
-      {navItems.map(({ label, href, icon: Icon }) => {
+      {adminNavItems.map(({ label, href, icon: Icon }) => {
         const active =
           href === "/admin" ? pathname === href : pathname.startsWith(href);
         return (
