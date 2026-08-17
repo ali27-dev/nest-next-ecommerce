@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { X, LogOut, LogIn, HelpCircle, Phone } from "lucide-react";
+import { X, LogOut, LogIn, HelpCircle, Phone, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { getCategoryIcon } from "@/lib/category-icons";
@@ -76,6 +76,16 @@ export function NavDrawer({
             })}
           </ul>
         </nav>
+
+        {isLoggedIn && (
+          <Link
+            href="/orders"
+            onClick={onClose}
+            className="flex items-center gap-3 px-5 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Package className="h-5 w-5" /> Order History
+          </Link>
+        )}
 
         <div className="mt-auto border-t py-2">
           <Link

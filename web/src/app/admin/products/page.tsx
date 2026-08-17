@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/spinner";
 import { ConfirmDialog } from "@/components/admin /confirm-dialog";
+import { AdminBackButton } from "@/components/admin /admin-back-button";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -55,7 +56,7 @@ export default function AdminProductsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6 gap-4">
-        <h1 className="text-xl font-semibold">Products</h1>
+        <AdminBackButton />
         <Button asChild className="h-10 gap-2">
           <Link href="/admin/products/new">
             <Plus className="h-4 w-4" /> Add Product

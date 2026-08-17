@@ -23,6 +23,7 @@ export interface Payment {
   status: string;
   paymentMethod: string;
   transactionId: string | null;
+  rejectionReason: string | null;
   orderId: string;
   order?: Order;
 }

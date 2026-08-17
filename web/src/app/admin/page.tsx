@@ -9,6 +9,7 @@ import { Payment } from "@/types/order";
 import { FullPageSpinner } from "@/components/ui/spinner";
 import Link from "next/link";
 import { StatCard } from "@/components/admin /stat-card";
+import { AdminBackButton } from "@/components/admin /admin-back-button";
 
 export default function AdminDashboardPage() {
   const [productCount, setProductCount] = useState<number | null>(null);
@@ -35,6 +36,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
+      <AdminBackButton />
       <h1 className="text-sm text-muted-foreground mb-6">
         Overview of your store
       </h1>

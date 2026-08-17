@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/spinner";
 import { ConfirmDialog } from "@/components/admin /confirm-dialog";
+import { AdminBackButton } from "@/components/admin /admin-back-button";
 
 function slugify(text: string) {
   return text
@@ -71,7 +72,7 @@ export default function AdminFabricsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-6">Fabrics</h1>
+      <AdminBackButton />
 
       <form onSubmit={handleCreate} className="flex gap-2 mb-6 max-w-md">
         <Input
