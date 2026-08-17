@@ -8,8 +8,11 @@ import { useHoverIntent } from "@/hooks/use-hover-intent";
 import { NavDrawer } from "./nav-drawer";
 import { useRef, useState } from "react";
 import type { Category } from "@/types/product";
+// import { useAuth } from "@/contexts/auth-context";
+// import Link from "next/link";
 
 export function MainNavBar({ categories }: { categories: Category[] }) {
+  // const { isLoggedIn } = useAuth();
   const { open: hovered, show, hide, forceClose } = useHoverIntent();
   const [pinned, setPinned] = useState(false);
   const suppressHoverRef = useRef(false);

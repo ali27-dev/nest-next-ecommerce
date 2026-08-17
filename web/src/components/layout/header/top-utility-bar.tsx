@@ -2,7 +2,14 @@
 "use client";
 
 import Link from "next/link";
-import { Phone, MessageCircle, Search, User, ShoppingCart } from "lucide-react";
+import {
+  Phone,
+  MessageCircle,
+  Search,
+  User,
+  ShoppingCart,
+  Package,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
@@ -48,7 +55,7 @@ export function TopUtilityBar({
           Farzara Store
         </Link>
 
-        <div className="flex items-center gap-0.5 sm:gap-1 justify-self-end">
+        <div className="flex items-center justify-content gap-0.5 sm:gap-1 sm:justify-self-end ">
           <Button
             variant="ghost"
             size="icon"
@@ -71,6 +78,19 @@ export function TopUtilityBar({
               <User className="h-5 w-5 sm:h-7 sm:w-7" />
             </Link>
           </Button>
+          {/* Order-History */}
+          {isLoggedIn && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 sm:h-12 sm:w-12"
+              asChild
+            >
+              <Link href="/orders" aria-label="Order history">
+                <Package className="h-5 w-5 sm:h-7 sm:w-7" />
+              </Link>
+            </Button>
+          )}
 
           <Button
             variant="ghost"

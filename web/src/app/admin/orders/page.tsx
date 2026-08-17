@@ -2,11 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { apiAuthGet } from "@/lib/api";
+import { Trash2 } from "lucide-react";
+import { apiAuthGet, apiAuthDelete } from "@/lib/api";
 import { Order } from "@/types/order";
 import { orderStatusLabel } from "@/lib/order-labels";
 import { FullPageSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { AdminBackButton } from "@/components/admin /admin-back-button";
+import { ConfirmDialog } from "@/components/admin /confirm-dialog";
 
 const statusFilters = [
   "ALL",
@@ -14,6 +18,7 @@ const statusFilters = [
   "PROCESSING",
   "DELIVERED",
   "CANCELLED",
+  "FAILED",
 ] as const;
 
 export default function AdminOrdersPage() {
@@ -22,14 +27,21 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] =
     useState<(typeof statusFilters)[number]>("ALL");
   const [search, setSearch] = useState("");
+  const [confirmTarget, setConfirmTarget] = useState<{
+    id: string;
+    orderNumber: string;
+  } | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
+  function load() {
     apiAuthGet<Order[]>("/orders/admin/all")
       .then(setOrders)
       .catch((err) =>
         setError(err instanceof Error ? err.message : "Failed to load orders")
       );
-  }, []);
+  }
+
+  useEffect(load, []);
 
   const filtered = useMemo(() => {
     if (!orders) return [];
@@ -51,12 +63,27 @@ export default function AdminOrdersPage() {
     }, {});
   }, [orders]);
 
+  async function confirmDelete() {
+    if (!confirmTarget) return;
+    setDeletingId(confirmTarget.id);
+    setError(null);
+    try {
+      await apiAuthDelete(`/orders/admin/${confirmTarget.id}`);
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete order");
+    } finally {
+      setDeletingId(null);
+      setConfirmTarget(null);
+    }
+  }
+
   if (error) return <p className="text-sm text-destructive">{error}</p>;
   if (!orders) return <FullPageSpinner />;
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-6">Orders</h1>
+      <AdminBackButton />
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {statusFilters.map((s) => (
@@ -93,12 +120,14 @@ export default function AdminOrdersPage() {
               0
             );
             return (
-              <Link
+              <div
                 key={order.id}
-                href={`/admin/orders/${order.id}`}
                 className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-4 hover:bg-accent transition-colors"
               >
-                <div className="min-w-0 flex-1 basis-full sm:basis-auto">
+                <Link
+                  href={`/admin/orders/${order.id}`}
+                  className="min-w-0 flex-1 basis-full sm:basis-auto"
+                >
                   <p className="text-sm font-mono font-medium truncate">
                     {order.orderNumber}
                   </p>
@@ -109,7 +138,7 @@ export default function AdminOrdersPage() {
                         }`.trim() || order.user.email
                       : "—"}
                   </p>
-                </div>
+                </Link>
                 <p className="text-xs text-muted-foreground w-24 shrink-0">
                   {new Date(order.createdAt).toLocaleDateString("en-PK", {
                     day: "numeric",
@@ -117,24 +146,43 @@ export default function AdminOrdersPage() {
                   })}
                 </p>
                 <p className="text-xs text-muted-foreground w-16 shrink-0">
-                  {order.orderItems.reduce((sum, i) => sum + i.quantity, 0)}{" "}
-                  items
+                  {itemCount} items
                 </p>
                 <span
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${
-                    orderStatusLabel(order.status).className
-                  }`}
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${status.className}`}
                 >
-                  {orderStatusLabel(order.status).label}
+                  {status.label}
                 </span>
-                <p className="text-sm font-mono w-20 sm:w-24 text-right shrink-0 ml-auto sm:ml-0">
+                <p className="text-sm font-mono w-20 sm:w-24 text-right shrink-0">
                   Rs {Number(order.totalAmount).toLocaleString()}
                 </p>
-              </Link>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    setConfirmTarget({
+                      id: order.id,
+                      orderNumber: order.orderNumber,
+                    })
+                  }
+                  className="text-destructive hover:text-destructive shrink-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             );
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirmTarget)}
+        title="Delete order?"
+        description={`Order ${confirmTarget?.orderNumber} and its items/payment record will be permanently deleted. This cannot be undone.`}
+        loading={deletingId !== null}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }
