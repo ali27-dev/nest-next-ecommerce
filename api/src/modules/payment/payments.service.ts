@@ -65,7 +65,7 @@ export class PaymentsService {
   }
 
   // Admin-only — approve or reject a manual payment
-  async verify(id: string, approve: boolean) {
+  async verify(id: string, approve: boolean, reason?: string) {
     const payment = await this.prisma.payment.findUnique({ where: { id } });
     if (!payment) {
       throw new NotFoundException('Payment not found');
@@ -73,21 +73,23 @@ export class PaymentsService {
     if (payment.status !== PaymentStatus.PENDING) {
       throw new BadRequestException('This payment has already been processed');
     }
+    if (!approve && !reason?.trim()) {
+      throw new BadRequestException('A reason is required to reject a payment');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const updatedPayment = await tx.payment.update({
         where: { id },
         data: {
           status: approve ? PaymentStatus.COMPLETE : PaymentStatus.FAILED,
+          rejectionReason: approve ? null : reason,
         },
       });
 
-      if (approve) {
-        await tx.order.update({
-          where: { id: payment.orderId },
-          data: { status: OrderStatus.PROCESSING }, // note: matches your current enum spelling
-        });
-      }
+      await tx.order.update({
+        where: { id: payment.orderId },
+        data: { status: approve ? OrderStatus.PROCESSING : OrderStatus.FAILED },
+      });
 
       return updatedPayment;
     });

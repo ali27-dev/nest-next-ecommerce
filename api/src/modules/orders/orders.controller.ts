@@ -7,6 +7,7 @@ import {
   Body,
   ParseUUIDPipe,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -36,6 +37,21 @@ export class OrdersController {
   @Roles(Role.ADMIN)
   findAllAdmin() {
     return this.ordersService.findAllAdmin();
+  }
+
+  @Delete('admin/:id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  removeAdmin(@Param('id', ParseUUIDPipe) id: string) {
+    return this.ordersService.removeAdmin(id);
+  }
+
+  @Patch(':id/confirm-delivery')
+  confirmDelivery(
+    @GetUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.ordersService.confirmDelivery(userId, id);
   }
 
   @Get(':id')
