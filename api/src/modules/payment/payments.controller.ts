@@ -48,7 +48,8 @@ export class PaymentsController {
   verify(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('approve') approve: boolean,
+    @Body('reason') reason?: string,
   ) {
-    return this.paymentsService.verify(id, approve);
+    return this.paymentsService.verify(id, approve, reason);
   }
 }

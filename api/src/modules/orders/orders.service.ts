@@ -9,6 +9,7 @@ import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
+  // findAllAdmin: any;
   constructor(private prisma: PrismaService) {}
 
   async checkout(userId: string, dto: CreateOrderDto) {
@@ -86,6 +87,19 @@ export class OrdersService {
     });
   }
 
+  async findAllAdmin() {
+    return this.prisma.order.findMany({
+      include: {
+        orderItems: { include: { product: true } },
+        payment: true,
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findOne(userId: string, id: string) {
     const order = await this.prisma.order.findFirst({
       where: { id, userId },
@@ -123,8 +137,9 @@ export class OrdersService {
   }
 
   // Admin \\
-  async findAllAdmin() {
-    return this.prisma.order.findMany({
+  async findOneAdmin(id: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
       include: {
         orderItems: { include: { product: true } },
         payment: true,
@@ -132,7 +147,36 @@ export class OrdersService {
           select: { id: true, email: true, firstName: true, lastName: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
+  }
+
+  async removeAdmin(id: string) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return this.prisma.order.delete({ where: { id } });
+  }
+
+  async confirmDelivery(userId: string, id: string) {
+    const order = await this.prisma.order.findFirst({ where: { id, userId } });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    if (order.status !== 'PROCESSING') {
+      throw new BadRequestException(
+        'Only orders currently being processed can be marked as delivered',
+      );
+    }
+    return this.prisma.order.update({
+      where: { id },
+      data: { status: 'DELIVERED' },
     });
   }
 }
