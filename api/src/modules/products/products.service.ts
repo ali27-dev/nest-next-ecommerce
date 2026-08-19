@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   ConflictException,
   Injectable,
@@ -52,6 +54,8 @@ export class ProductsService {
     minPrice?: number;
     maxPrice?: number;
     sort?: 'price_asc' | 'price_desc' | 'newest';
+    search?: string;
+    onSale?: boolean;
   }) {
     const {
       page = 1,
@@ -63,6 +67,8 @@ export class ProductsService {
       minPrice,
       maxPrice,
       sort = 'newest',
+      search,
+      onSale,
     } = params;
 
     const skip = (page - 1) * limit;
@@ -73,11 +79,19 @@ export class ProductsService {
       ...(fabricId && { fabricId }),
       ...(season && { season }),
       ...(pieceCount && { pieceCount }),
+      ...(onSale && { compareAtPrice: { not: null } }),
       ...((minPrice !== undefined || maxPrice !== undefined) && {
         price: {
           ...(minPrice !== undefined && { gte: minPrice }),
           ...(maxPrice !== undefined && { lte: maxPrice }),
         },
+      }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { sku: { contains: search, mode: 'insensitive' } },
+          { id: search },
+        ],
       }),
     };
 

@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseBoolPipe,
   ParseFloatPipe,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -43,7 +44,9 @@ export class ProductsController {
     minPrice?: number,
     @Query('maxPrice', new ParseFloatPipe({ optional: true }))
     maxPrice?: number,
+    @Query('onSale', new ParseBoolPipe({ optional: true })) onSale?: boolean,
     @Query('sort') sort?: 'price_asc' | 'price_desc' | 'newest',
+    @Query('search') search?: string,
   ) {
     return this.productsService.findAll({
       page,
@@ -55,6 +58,7 @@ export class ProductsController {
       minPrice,
       maxPrice,
       sort,
+      search,
     });
   }
 

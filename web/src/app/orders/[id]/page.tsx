@@ -19,8 +19,8 @@ export default function OrderDetailPage() {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(false);
   const justPlaced = searchParams.get("placed") === "1";
+  const [cancelling, setCancelling] = useState(false);
 
   function load() {
     apiAuthGet<Order>(`/orders/${params.id}`)
@@ -43,17 +43,16 @@ export default function OrderDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id, isLoggedIn]);
 
-  async function handleConfirmDelivery() {
-    setConfirming(true);
+  async function handleCancel() {
+    if (!confirm("Cancel this order? This cannot be undone.")) return;
+    setCancelling(true);
     try {
-      await apiAuthPatch(`/orders/${params.id}/confirm-delivery`);
+      await apiAuthPatch(`/orders/${params.id}/cancel`);
       load();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to confirm delivery"
-      );
+      setError(err instanceof Error ? err.message : "Failed to cancel order");
     } finally {
-      setConfirming(false);
+      setCancelling(false);
     }
   }
 
@@ -91,7 +90,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
       )}
-
       <div className="flex items-start justify-between mb-6">
         <div>
           <p className="text-xs text-muted-foreground">Order</p>
@@ -113,6 +111,7 @@ export default function OrderDetailPage() {
           >
             {status.label}
           </span>
+
           {paymentStatus && (
             <span
               className={`text-xs font-medium px-2.5 py-1 rounded-full ${paymentStatus.className}`}
@@ -122,7 +121,6 @@ export default function OrderDetailPage() {
           )}
         </div>
       </div>
-
       {order.status === "FAILED" && order.payment?.rejectionReason && (
         <div className="rounded-xl border border-red-200 bg-red-50 text-red-800 p-4 mb-6">
           <p className="text-sm font-medium">
@@ -131,27 +129,19 @@ export default function OrderDetailPage() {
           <p className="text-sm mt-1">{order.payment.rejectionReason}</p>
         </div>
       )}
-
-      {order.status === "PROCESSING" && (
-        <div className="rounded-xl border bg-muted/50 p-4 mb-6 flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">Received your order?</p>
+      {(order.status === "PENDING" || order.status === "PROCESSING") && (
+        <div className="flex justify-end mb-6">
           <Button
+            variant="outline"
             size="sm"
-            onClick={handleConfirmDelivery}
-            disabled={confirming}
+            onClick={handleCancel}
+            disabled={cancelling}
+            className="text-destructive hover:text-destructive"
           >
-            {confirming ? "Confirming..." : "Mark as Delivered"}
+            {cancelling ? "Cancelling..." : "Cancel Order"}
           </Button>
         </div>
       )}
-
-      {order.status === "DELIVERED" && (
-        <div className="flex items-center gap-2 text-sm text-green-700 mb-6">
-          <CheckCircle2 className="h-4 w-4" /> You confirmed delivery for this
-          order.
-        </div>
-      )}
-
       <div className="border rounded-xl divide-y">
         {order.orderItems.map((item) => (
           <div key={item.id} className="flex gap-4 p-4">
@@ -178,14 +168,12 @@ export default function OrderDetailPage() {
           </div>
         ))}
       </div>
-
       <div className="flex justify-between text-base font-semibold mt-4 px-1">
         <span>Total</span>
         <span className="font-mono">
           Rs {Number(order.totalAmount).toLocaleString()}
         </span>
       </div>
-
       {order.shippingAddress && (
         <div className="mt-8">
           <h2 className="text-sm font-semibold mb-2">Shipping Address</h2>
@@ -194,7 +182,6 @@ export default function OrderDetailPage() {
           </p>
         </div>
       )}
-
       {order.payment && (
         <div className="mt-6">
           <h2 className="text-sm font-semibold mb-2">Payment</h2>
@@ -205,7 +192,7 @@ export default function OrderDetailPage() {
           </p>
         </div>
       )}
-
+      {/* <div className="flex items-center"> */}
       <Button asChild variant="outline" className="mt-8 h-11">
         <Link href="/">Continue Shopping</Link>
       </Button>

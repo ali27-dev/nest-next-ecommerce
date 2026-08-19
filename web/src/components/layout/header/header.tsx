@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { TopUtilityBar } from "./top-utility-bar";
 import { MainNavBar } from "./main-nav-bar";
-import { SearchOverlay } from "./search-overlay";
+import { SearchOverlay } from "../../product/search-overlay";
 import { ContactCard } from "./contact-card";
 import type { Category } from "@/types/product";
 
