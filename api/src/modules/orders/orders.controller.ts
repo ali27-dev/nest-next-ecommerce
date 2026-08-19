@@ -16,6 +16,7 @@ import { GetUser } from 'src/common/get-user.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -39,6 +40,13 @@ export class OrdersController {
     return this.ordersService.findAllAdmin();
   }
 
+  @Get('admin/:id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  findOneAdmin(@Param('id', ParseUUIDPipe) id: string) {
+    return this.ordersService.findOneAdmin(id);
+  }
+
   @Delete('admin/:id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
@@ -52,6 +60,16 @@ export class OrdersController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.ordersService.confirmDelivery(userId, id);
+  }
+
+  @Patch('admin/:id/status')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  updateStatusAdmin(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateOrderStatusDto,
+  ) {
+    return this.ordersService.updateStatusAdmin(id, dto.status);
   }
 
   @Get(':id')

@@ -156,6 +156,17 @@ export class OrdersService {
     return order;
   }
 
+  async updateStatusAdmin(id: string, status: OrderStatus) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return this.prisma.order.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
   async removeAdmin(id: string) {
     const order = await this.prisma.order.findUnique({ where: { id } });
     if (!order) {
