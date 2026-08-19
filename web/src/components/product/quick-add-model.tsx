@@ -70,7 +70,7 @@ export function QuickAddModal({ product, onClose }: QuickAddModalProps) {
         aria-modal="true"
         aria-label={`Quick add ${product.name}`}
         className={cn(
-          "w-full max-w-2xl bg-background rounded-xl shadow-2xl overflow-hidden transition-all duration-200 flex flex-col sm:flex-row",
+          "relative w-full max-w-2xl bg-background rounded-xl shadow-2xl overflow-hidden transition-all duration-200 flex flex-col sm:flex-row max-h-[85vh] sm:max-h-[80vh]",
           open ? "opacity-100 scale-100" : "opacity-0 scale-95"
         )}
       >
@@ -82,7 +82,7 @@ export function QuickAddModal({ product, onClose }: QuickAddModalProps) {
           <X className="h-5 w-5" />
         </button>
 
-        <div className="relative w-full sm:w-2/5 aspect-[3/4] bg-muted shrink-0">
+        <div className="relative w-full h-40 sm:h-auto sm:w-2/5 sm:aspect-[3/4] bg-muted shrink-0">
           {product.imageUrl && (
             <img
               src={product.imageUrl}
@@ -92,7 +92,7 @@ export function QuickAddModal({ product, onClose }: QuickAddModalProps) {
           )}
         </div>
 
-        <div className="flex-1 p-6 flex flex-col gap-4">
+        <div className="flex-1 p-6 flex flex-col gap-4 overflow-y-auto">
           <div>
             <h2 className="text-base font-medium">{product.name}</h2>
             <div className="flex items-center gap-2 mt-2">
@@ -104,11 +104,6 @@ export function QuickAddModal({ product, onClose }: QuickAddModalProps) {
               <span className="text-base font-semibold">
                 Rs. {Number(product.price).toLocaleString()}
               </span>
-              {hasDiscount && (
-                <span className="text-xs font-medium text-destructive">
-                  FREE DELIVERY
-                </span>
-              )}
             </div>
           </div>
 
@@ -143,7 +138,7 @@ export function QuickAddModal({ product, onClose }: QuickAddModalProps) {
           <Button
             onClick={handleAddToCart}
             disabled={!canAdd}
-            className="h-11 mt-auto"
+            className="h-11 mt-auto shrink-0"
           >
             {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
           </Button>
