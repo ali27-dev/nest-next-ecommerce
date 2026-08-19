@@ -114,14 +114,22 @@ export class OrdersService {
   }
 
   async cancel(userId: string, id: string) {
-    const order = await this.findOne(userId, id);
+    const order = await this.prisma.order.findFirst({
+      where: { id, userId },
+      include: { orderItems: true },
+    });
 
-    if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException('Only pending orders can be cancelled');
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.status !== 'PENDING' && order.status !== 'PROCESSING') {
+      throw new BadRequestException(
+        'Only pending or processing orders can be cancelled',
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // Restore stock since the order never shipped
       for (const item of order.orderItems) {
         await tx.product.update({
           where: { id: item.productId },
@@ -131,7 +139,7 @@ export class OrdersService {
 
       return tx.order.update({
         where: { id },
-        data: { status: OrderStatus.CANCELLED },
+        data: { status: 'CANCELLED' },
       });
     });
   }
