@@ -1,73 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
-import { apiAuthGet, apiAuthPatch, UnauthorizedError } from "@/lib/api";
+import { apiAuthGet } from "@/lib/api";
 import { Order } from "@/types/order";
-import { useAuth } from "@/contexts/auth-context";
 import { orderStatusLabel, paymentStatusLabel } from "@/lib/order-labels";
-import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/spinner";
+import { AdminBackButton } from "@/components/admin /admin-back-button";
+import { OrderStatusControl } from "@/components/admin /order-status-control";
 
-export default function OrderDetailPage() {
+export default function AdminOrderDetailPage() {
   const params = useParams<{ id: string }>();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const { isLoggedIn } = useAuth();
-
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(false);
-  const justPlaced = searchParams.get("placed") === "1";
 
   function load() {
-    apiAuthGet<Order>(`/orders/${params.id}`)
+    apiAuthGet<Order>(`/orders/admin/${params.id}`)
       .then(setOrder)
-      .catch((err) => {
-        if (err instanceof UnauthorizedError) {
-          router.push(`/login?redirect=/orders/${params.id}&expired=1`);
-          return;
-        }
-        setError(err instanceof Error ? err.message : "Order not found");
-      });
-  }
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      router.push(`/login?redirect=/orders/${params.id}`);
-      return;
-    }
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id, isLoggedIn]);
-
-  async function handleConfirmDelivery() {
-    setConfirming(true);
-    try {
-      await apiAuthPatch(`/orders/${params.id}/confirm-delivery`);
-      load();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to confirm delivery"
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : "Order not found")
       );
-    } finally {
-      setConfirming(false);
-    }
   }
 
-  if (error) {
-    return (
-      <div className="px-6 py-24 text-center">
-        <p className="text-sm text-destructive">{error}</p>
-        <Button asChild variant="outline" className="mt-6 h-11">
-          <Link href="/orders">Back to Orders</Link>
-        </Button>
-      </div>
-    );
-  }
+  useEffect(load, [params.id]);
 
+  if (error) return <p className="text-sm text-destructive">{error}</p>;
   if (!order) return <FullPageSpinner />;
 
   const status = orderStatusLabel(order.status);
@@ -76,35 +34,21 @@ export default function OrderDetailPage() {
     : null;
 
   return (
-    <div className="px-6 md:px-10 py-8 max-w-3xl mx-auto">
-      {justPlaced && (
-        <div className="flex items-center gap-3 border border-green-200 bg-green-50 text-green-800 rounded-xl px-5 py-4 mb-8">
-          <CheckCircle2 className="h-6 w-6 shrink-0" />
-          <div>
-            <p className="text-sm font-medium">Order placed successfully!</p>
-            {paymentStatus?.label === "Awaiting Verification" && (
-              <p className="text-xs mt-0.5">
-                We&apos;ll confirm your payment shortly. You can check back here
-                anytime.
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+    <div className="max-w-2xl">
+      <AdminBackButton />
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 mt-4">
         <div>
           <p className="text-xs text-muted-foreground">Order</p>
           <h1 className="text-lg font-semibold font-mono">
             {order.orderNumber}
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Placed{" "}
-            {new Date(order.createdAt).toLocaleDateString("en-PK", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
+            {order.user
+              ? `${order.user.firstName ?? ""} ${
+                  order.user.lastName ?? ""
+                }`.trim() || order.user.email
+              : "—"}
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
@@ -123,36 +67,34 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
+      <OrderStatusControl
+        orderId={order.id}
+        currentStatus={order.status}
+        onUpdated={load}
+      />
+
+      {order.payment?.status === "PENDING" && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 text-amber-800 p-4 mb-6 flex items-center justify-between gap-3">
+          <p className="text-sm">
+            This order&apos;s payment hasn&apos;t been verified yet.
+          </p>
+          <Link
+            href="/admin/payments"
+            className="text-sm font-medium underline shrink-0"
+          >
+            Go to Payments
+          </Link>
+        </div>
+      )}
+
       {order.status === "FAILED" && order.payment?.rejectionReason && (
         <div className="rounded-xl border border-red-200 bg-red-50 text-red-800 p-4 mb-6">
-          <p className="text-sm font-medium">
-            Your payment could not be verified
-          </p>
+          <p className="text-sm font-medium">Payment rejected</p>
           <p className="text-sm mt-1">{order.payment.rejectionReason}</p>
         </div>
       )}
 
-      {order.status === "PROCESSING" && (
-        <div className="rounded-xl border bg-muted/50 p-4 mb-6 flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">Received your order?</p>
-          <Button
-            size="sm"
-            onClick={handleConfirmDelivery}
-            disabled={confirming}
-          >
-            {confirming ? "Confirming..." : "Mark as Delivered"}
-          </Button>
-        </div>
-      )}
-
-      {order.status === "DELIVERED" && (
-        <div className="flex items-center gap-2 text-sm text-green-700 mb-6">
-          <CheckCircle2 className="h-4 w-4" /> You confirmed delivery for this
-          order.
-        </div>
-      )}
-
-      <div className="border rounded-xl divide-y">
+      <div className="border rounded-xl divide-y bg-background">
         {order.orderItems.map((item) => (
           <div key={item.id} className="flex gap-4 p-4">
             <div className="h-16 w-14 rounded-md overflow-hidden bg-muted shrink-0">
@@ -194,21 +136,6 @@ export default function OrderDetailPage() {
           </p>
         </div>
       )}
-
-      {order.payment && (
-        <div className="mt-6">
-          <h2 className="text-sm font-semibold mb-2">Payment</h2>
-          <p className="text-sm text-muted-foreground">
-            {order.payment.paymentMethod.replace("_", " ")}
-            {order.payment.transactionId &&
-              ` — Ref: ${order.payment.transactionId}`}
-          </p>
-        </div>
-      )}
-
-      <Button asChild variant="outline" className="mt-8 h-11">
-        <Link href="/">Continue Shopping</Link>
-      </Button>
     </div>
   );
 }

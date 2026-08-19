@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { apiAuthGet } from "@/lib/api";
+import { apiAuthGet, apiAuthPatch, UnauthorizedError } from "@/lib/api";
 import { Order } from "@/types/order";
 import { useAuth } from "@/contexts/auth-context";
 import { orderStatusLabel, paymentStatusLabel } from "@/lib/order-labels";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/contexts/cart-context";
 import { FullPageSpinner } from "@/components/ui/spinner";
 
 export default function OrderDetailPage() {
@@ -17,30 +16,47 @@ export default function OrderDetailPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
-  const { clear } = useCart();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const justPlaced = searchParams.get("placed") === "1";
+
+  function load() {
+    apiAuthGet<Order>(`/orders/${params.id}`)
+      .then(setOrder)
+      .catch((err) => {
+        if (err instanceof UnauthorizedError) {
+          router.push(`/login?redirect=/orders/${params.id}&expired=1`);
+          return;
+        }
+        setError(err instanceof Error ? err.message : "Order not found");
+      });
+  }
 
   useEffect(() => {
     if (!isLoggedIn) {
       router.push(`/login?redirect=/orders/${params.id}`);
       return;
     }
-    apiAuthGet<Order>(`/orders/${params.id}`)
-      .then(setOrder)
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : "Order not found")
-      );
-  }, [params.id, isLoggedIn, router]);
-
-  useEffect(() => {
-    if (justPlaced) {
-      clear();
-    }
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [params.id, isLoggedIn]);
+
+  async function handleConfirmDelivery() {
+    setConfirming(true);
+    try {
+      await apiAuthPatch(`/orders/${params.id}/confirm-delivery`);
+      load();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to confirm delivery"
+      );
+    } finally {
+      setConfirming(false);
+    }
+  }
+
   if (error) {
     return (
       <div className="px-6 py-24 text-center">
@@ -106,6 +122,35 @@ export default function OrderDetailPage() {
           )}
         </div>
       </div>
+
+      {order.status === "FAILED" && order.payment?.rejectionReason && (
+        <div className="rounded-xl border border-red-200 bg-red-50 text-red-800 p-4 mb-6">
+          <p className="text-sm font-medium">
+            Your payment could not be verified
+          </p>
+          <p className="text-sm mt-1">{order.payment.rejectionReason}</p>
+        </div>
+      )}
+
+      {order.status === "PROCESSING" && (
+        <div className="rounded-xl border bg-muted/50 p-4 mb-6 flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">Received your order?</p>
+          <Button
+            size="sm"
+            onClick={handleConfirmDelivery}
+            disabled={confirming}
+          >
+            {confirming ? "Confirming..." : "Mark as Delivered"}
+          </Button>
+        </div>
+      )}
+
+      {order.status === "DELIVERED" && (
+        <div className="flex items-center gap-2 text-sm text-green-700 mb-6">
+          <CheckCircle2 className="h-4 w-4" /> You confirmed delivery for this
+          order.
+        </div>
+      )}
 
       <div className="border rounded-xl divide-y">
         {order.orderItems.map((item) => (
