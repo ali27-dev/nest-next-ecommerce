@@ -1,38 +1,33 @@
+/* eslint-disable react-hooks/refs */
 "use client";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Category } from "@/types/product";
+import { Banner } from "@/types/banner";
 import { cn } from "@/lib/utils";
 
-function getBannerImage(slug: string) {
-  return `https://picsum.photos/seed/${slug}-farzara/1600/900`;
-}
+const CLICK_TOLERANCE = 10;
+const SLIDE_THRESHOLD = 40;
 
-const CLICK_TOLERANCE = 6; // px of movement still counted as a plain tap
-const SLIDE_THRESHOLD = 50; // px of movement needed to switch slides
-
-export function HeroCarousel({ categories }: { categories: Category[] }) {
+export function HeroCarousel({ banners }: { banners: Banner[] }) {
   const [index, setIndex] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
 
   const dragStartX = useRef(0);
-  const draggedRef = useRef(false); // synchronous, no render-timing issues
+  const draggedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
-  const slides = categories;
-
   useEffect(() => {
-    if (dragging || slides.length <= 1) return;
+    if (dragging || banners.length <= 1) return;
     timerRef.current = setInterval(() => {
-      setIndex((i) => (i + 1) % slides.length);
+      setIndex((i) => (i + 1) % banners.length);
     }, 5000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [dragging, slides.length]);
+  }, [dragging, banners.length]);
 
   function goTo(i: number) {
     setIndex(i);
@@ -42,44 +37,40 @@ export function HeroCarousel({ categories }: { categories: Category[] }) {
     setDragging(true);
     draggedRef.current = false;
     dragStartX.current = e.clientX;
-    trackRef.current?.setPointerCapture(e.pointerId);
+    // trackRef.current?.setPointerCapture(e.pointerId);
   }
 
   function handlePointerMove(e: React.PointerEvent) {
     if (!dragging) return;
     const offset = e.clientX - dragStartX.current;
-    if (Math.abs(offset) > CLICK_TOLERANCE) {
-      draggedRef.current = true;
-    }
+    if (Math.abs(offset) > CLICK_TOLERANCE) draggedRef.current = true;
     setDragOffset(offset);
   }
 
   function handlePointerUp() {
     if (!dragging) return;
-
     if (dragOffset > SLIDE_THRESHOLD) {
-      setIndex((i) => (i - 1 + slides.length) % slides.length);
+      setIndex((i) => (i - 1 + banners.length) % banners.length);
     } else if (dragOffset < -SLIDE_THRESHOLD) {
-      setIndex((i) => (i + 1) % slides.length);
+      setIndex((i) => (i + 1) % banners.length);
     }
-
     setDragging(false);
     setDragOffset(0);
   }
 
   function handleLinkClick(e: React.MouseEvent) {
-    if (draggedRef.current) {
-      e.preventDefault();
-    }
+    console.log(
+      "handleLinkClick fired, draggedRef.current =",
+      draggedRef.current
+    );
+    if (draggedRef.current) e.preventDefault();
   }
 
-  if (slides.length === 0) return null;
+  if (banners.length === 0) return null;
 
   const baseTranslate = -index * 100;
-  // eslint-disable-next-line react-hooks/refs
   const dragPercent = trackRef.current
-    ? // eslint-disable-next-line react-hooks/refs
-      (dragOffset / trackRef.current.clientWidth) * 100
+    ? (dragOffset / trackRef.current.clientWidth) * 100
     : 0;
 
   return (
@@ -100,26 +91,30 @@ export function HeroCarousel({ categories }: { categories: Category[] }) {
           )}
           style={{ transform: `translateX(${baseTranslate + dragPercent}%)` }}
         >
-          {slides.map((category) => (
+          {banners.map((banner) => (
             <Link
-              key={category.id}
-              href={`/category/${category.id}`}
+              key={banner.id}
+              href={
+                banner.categoryId
+                  ? `/category/${banner.categoryId}`
+                  : banner.linkUrl || "#"
+              }
               onClick={handleLinkClick}
               onDragStart={(e) => e.preventDefault()}
               draggable={false}
               className="relative w-full h-full shrink-0 bg-cover bg-center block"
               style={{
-                backgroundImage: `url(${getBannerImage(category.slug)})`,
+                backgroundImage: `url(${banner.imageUrl})`,
                 width: "100%",
               }}
-              aria-label={`Shop ${category.name}`}
+              aria-label={banner.title ?? "Shop now"}
             />
           ))}
         </div>
       </div>
 
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
-        {slides.map((_, i) => (
+        {banners.map((_, i) => (
           <button
             key={i}
             onClick={() => goTo(i)}

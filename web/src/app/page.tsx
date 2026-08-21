@@ -1,10 +1,14 @@
 import { apiFetch } from "@/lib/api";
 import { Category, Product, ProductListResponse } from "@/types/product";
+import { Banner } from "@/types/banner";
 import { HeroCarousel } from "@/components/home/hero-carousel";
 import { CategoryCarousel } from "@/components/home/category-carousel";
 
 export default async function Home() {
-  const categories = await apiFetch<Category[]>("/categories");
+  const [categories, banners] = await Promise.all([
+    apiFetch<Category[]>("/categories"),
+    apiFetch<Banner[]>("/banners"),
+  ]);
 
   const productsByCategory = await Promise.all(
     categories.map((category) =>
@@ -16,7 +20,7 @@ export default async function Home() {
 
   return (
     <div>
-      <HeroCarousel categories={categories} />
+      <HeroCarousel banners={banners} />
       {categories.map((category, i) => (
         <CategoryCarousel
           key={category.id}

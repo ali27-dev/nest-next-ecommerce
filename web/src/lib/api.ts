@@ -98,11 +98,12 @@ export async function apiAuthDelete<T>(path: string): Promise<T> {
 
 export async function apiAuthUpload<T>(
   path: string,
-  formData: FormData
+  formData: FormData,
+  method: "PATCH" | "POST" = "PATCH"
 ): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${getAccessToken()}` }, // no Content-Type — browser sets the multipart boundary
+    method,
+    headers: { Authorization: `Bearer ${getAccessToken()}` },
     body: formData,
     cache: "no-store",
   });

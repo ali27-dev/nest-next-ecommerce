@@ -19,6 +19,7 @@ const navItems = [
   { label: "Categories", href: "/admin/categories", icon: Tags },
   { label: "Fabrics", href: "/admin/fabrics", icon: Shirt },
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
+  { label: "Banners", href: "/admin/banners", icon: CreditCard },
 ];
 
 export function AdminNavList({ onNavigate }: { onNavigate?: () => void }) {
