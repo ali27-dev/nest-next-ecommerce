@@ -1,5 +1,4 @@
-import {
-  IsString,
+ IsString,
   IsNotEmpty,
   IsNumber,
   Min,
