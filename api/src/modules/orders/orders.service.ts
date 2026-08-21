@@ -9,6 +9,7 @@ import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
+  // findAllAdmin: any;
   constructor(private prisma: PrismaService) {}
 
   async checkout(userId: string, dto: CreateOrderDto) {
@@ -86,6 +87,19 @@ export class OrdersService {
     });
   }
 
+  async findAllAdmin() {
+    return this.prisma.order.findMany({
+      include: {
+        orderItems: { include: { product: true } },
+        payment: true,
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findOne(userId: string, id: string) {
     const order = await this.prisma.order.findFirst({
       where: { id, userId },
@@ -100,14 +114,22 @@ export class OrdersService {
   }
 
   async cancel(userId: string, id: string) {
-    const order = await this.findOne(userId, id);
+    const order = await this.prisma.order.findFirst({
+      where: { id, userId },
+      include: { orderItems: true },
+    });
 
-    if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException('Only pending orders can be cancelled');
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.status !== 'PENDING' && order.status !== 'PROCESSING') {
+      throw new BadRequestException(
+        'Only pending or processing orders can be cancelled',
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // Restore stock since the order never shipped
       for (const item of order.orderItems) {
         await tx.product.update({
           where: { id: item.productId },
@@ -117,8 +139,63 @@ export class OrdersService {
 
       return tx.order.update({
         where: { id },
-        data: { status: OrderStatus.CANCELLED },
+        data: { status: 'CANCELLED' },
       });
+    });
+  }
+
+  // Admin \\
+  async findOneAdmin(id: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        orderItems: { include: { product: true } },
+        payment: true,
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
+  }
+
+  async updateStatusAdmin(id: string, status: OrderStatus) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return this.prisma.order.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
+  async removeAdmin(id: string) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return this.prisma.order.delete({ where: { id } });
+  }
+
+  async confirmDelivery(userId: string, id: string) {
+    const order = await this.prisma.order.findFirst({ where: { id, userId } });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    if (order.status !== 'PROCESSING') {
+      throw new BadRequestException(
+        'Only orders currently being processed can be marked as delivered',
+      );
+    }
+    return this.prisma.order.update({
+      where: { id },
+      data: { status: 'DELIVERED' },
     });
   }
 }

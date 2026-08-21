@@ -21,12 +21,13 @@ enum Role{
 }
 
 // OrderStatus enum
- enum OrderStatus{
+enum OrderStatus{
 PENDING
 PROCESSING
 DELIVERED
 CANCELLED
- }
+FAILED
+}
 
 // PaymentStatus enum
  enum PaymentStatus{
@@ -53,6 +54,12 @@ enum PieceCount {
   TWO_PIECE
   THREE_PIECE
 }
+
+enum StitchType {
+  STITCHED
+  UNSTITCHED
+}
+
 // USERS Model //
 model User{
   id String @id @default(uuid())
@@ -93,18 +100,23 @@ model Fabric {
 
  // PRODUCTS Model //
 model Product{
-    id String @id @default(uuid())
+  id String @id @default(uuid())
     name String
     description String?
     price Decimal @db.Decimal(10,2)
-     compareAtPrice Decimal? @db.Decimal(10,2)
+    compareAtPrice Decimal? @db.Decimal(10,2)
     stock Int @default(0)
     sku String @unique
     imageUrl String?
+    secondaryImageUrl String?
+    galleryImages String[] @default([])
+    sizes String[] @default([])
+    color String?
     isActive Boolean @default(true)
 
     season Season?
     pieceCount PieceCount?
+    stitchType StitchType?
 
     fabricId String?
     fabric Fabric? @relation(fields: [fabricId], references: [id])
@@ -243,9 +255,10 @@ model Payment{
  id String @id @default(uuid())
  amount Decimal @db.Decimal(10,2)
  status PaymentStatus @default(PENDING)
- currency String @default("usd")
-paymentMethod PaymentMethod?
-transactionId String?
+ currency String @default("pkr")
+ paymentMethod PaymentMethod?
+ transactionId String?
+ rejectionReason String?
 
   userId String
   user User @relation(fields: [userId],references: [id],onDelete: Cascade)

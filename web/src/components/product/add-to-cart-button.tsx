@@ -1,28 +1,32 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth-context";
+import { useCart } from "@/contexts/cart-context";
+import { Product } from "@/types/product";
 import { ShoppingBag } from "lucide-react";
 
 interface AddToCartButtonProps {
-  productId: string;
+  product: Product;
   disabled?: boolean;
   variant?: "default" | "icon";
 }
 
 export function AddToCartButton({
-  productId,
+  product,
   disabled,
   variant = "default",
 }: AddToCartButtonProps) {
-  const { isLoggedIn } = useAuth();
+  const { addItem } = useCart();
 
   function handleClick() {
-    if (!isLoggedIn) {
-      alert("Please log in to add items to your cart.");
+    if (product.sizes.length > 0) {
+      // Products with sizes are added via ProductPurchasePanel, where a
+      // size can actually be selected — this quick-add button only
+      // handles sizeless items (watches, perfumes) safely.
+      alert("Please select options on the product page.");
       return;
     }
-    alert(`Add to cart for product ${productId} — coming soon.`);
+    addItem(product, 1, null);
   }
 
   if (variant === "icon") {

@@ -11,6 +11,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payment/payments.module';
 import { FabricsModule } from './modules/fabrics/fabrics.module';
+import { BannersModule } from './modules/banners/banners.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { FabricsModule } from './modules/fabrics/fabrics.module';
     OrdersModule,
     PaymentsModule,
     FabricsModule,
+    BannersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,16 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { X, LogOut, LogIn, HelpCircle, Phone } from "lucide-react";
-import { categories } from "@/lib/nav-links";
+import { X, LogOut, LogIn, HelpCircle, Phone, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
+import { getCategoryIcon } from "@/lib/category-icons";
+import type { Category } from "@/types/product";
+import { useCart } from "@/contexts/cart-context";
 
 interface NavDrawerProps {
   open: boolean;
   onClose: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  categories: Category[];
 }
 
 export function NavDrawer({
@@ -18,7 +21,9 @@ export function NavDrawer({
   onClose,
   onMouseEnter,
   onMouseLeave,
+  categories,
 }: NavDrawerProps) {
+  const { clear: clearCart } = useCart();
   const { isLoggedIn, logout } = useAuth();
 
   return (
@@ -41,7 +46,7 @@ export function NavDrawer({
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between h-14 px-5 border-b">
+        <div className="flex items-center justify-between h-14 px-5 border-b shrink-0">
           <span className="font-semibold text-lg">Menu</span>
           <button
             onClick={onClose}
@@ -52,19 +57,35 @@ export function NavDrawer({
           </button>
         </div>
 
-        <nav className="flex flex-col py-2 overflow-y-auto">
-          {categories.map(({ label, href, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={onClose}
-              className="flex items-center gap-3 px-5 py-3 text-base hover:bg-accent transition-colors"
-            >
-              <Icon className="h-5 w-5 text-muted-foreground" />
-              {label}
-            </Link>
-          ))}
+        <nav className="flex-1 overflow-y-auto" aria-label="Shop by category">
+          <ul className="flex flex-col py-2 list-none m-0 p-0">
+            {categories.map((category) => {
+              const Icon = getCategoryIcon(category.slug);
+              return (
+                <li key={category.id}>
+                  <Link
+                    href={`/category/${category.id}`}
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-5 py-3 text-base hover:bg-accent transition-colors"
+                  >
+                    <Icon className="h-5 w-5 text-muted-foreground" />
+                    {category.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
+
+        {isLoggedIn && (
+          <Link
+            href="/orders"
+            onClick={onClose}
+            className="flex items-center gap-3 px-5 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Package className="h-5 w-5" /> Order History
+          </Link>
+        )}
 
         <div className="mt-auto border-t py-2">
           <Link
@@ -86,6 +107,7 @@ export function NavDrawer({
               onClick={() => {
                 logout();
                 onClose();
+                clearCart();
               }}
               className="flex w-full items-center gap-3 px-5 py-3 text-sm text-destructive hover:bg-accent transition-colors"
             >

@@ -1,5 +1,4 @@
-import {
-  IsString,
+ IsString,
   IsNotEmpty,
   IsNumber,
   Min,
@@ -7,9 +6,10 @@ import {
   IsOptional,
   IsUrl,
   IsBoolean,
-  IsEnum,
   IsArray,
+  IsEnum,
 } from 'class-validator';
+
 import { Season, PieceCount, StitchType } from '@prisma/client';
 
 export class CreateProductDto {

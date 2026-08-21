@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   ConflictException,
   Injectable,
@@ -52,6 +54,8 @@ export class ProductsService {
     minPrice?: number;
     maxPrice?: number;
     sort?: 'price_asc' | 'price_desc' | 'newest';
+    search?: string;
+    onSale?: boolean;
   }) {
     const {
       page = 1,
@@ -63,6 +67,8 @@ export class ProductsService {
       minPrice,
       maxPrice,
       sort = 'newest',
+      search,
+      onSale,
     } = params;
 
     const skip = (page - 1) * limit;
@@ -73,11 +79,19 @@ export class ProductsService {
       ...(fabricId && { fabricId }),
       ...(season && { season }),
       ...(pieceCount && { pieceCount }),
+      ...(onSale && { compareAtPrice: { not: null } }),
       ...((minPrice !== undefined || maxPrice !== undefined) && {
         price: {
           ...(minPrice !== undefined && { gte: minPrice }),
           ...(maxPrice !== undefined && { lte: maxPrice }),
         },
+      }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { sku: { contains: search, mode: 'insensitive' } },
+          { id: search },
+        ],
       }),
     };
 
@@ -138,6 +152,21 @@ export class ProductsService {
 
   async remove(id: string) {
     await this.findOne(id); // throws 404 if not found
+
+    const orderItemCount = await this.prisma.orderItem.count({
+      where: { productId: id },
+    });
+
+    if (orderItemCount > 0) {
+      // This product has real order history — deleting it would break past
+      // orders' referential integrity. Deactivate instead, same as any real
+      // e-commerce platform does for discontinued products that were ever sold.
+      return this.prisma.product.update({
+        where: { id },
+        data: { isActive: false },
+      });
+    }
+
     return this.prisma.product.delete({ where: { id } });
   }
 }

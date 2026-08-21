@@ -82,7 +82,7 @@ export function CategoryCarousel({
         {products.map((product) => (
           <div
             key={product.id}
-            className="w-[45vw] sm:w-56 shrink-0 snap-start"
+            className="w-[70vw] sm:w-72 md:w-80 lg:w-96 shrink-0 snap-start"
           >
             <ProductCard product={product} />
           </div>

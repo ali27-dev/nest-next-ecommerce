@@ -1,8 +1,18 @@
+// src/components/layout/header/top-utility-bar.tsx
 "use client";
 
 import Link from "next/link";
-import { Phone, MessageCircle, Search, User, ShoppingCart } from "lucide-react";
+import {
+  Phone,
+  MessageCircle,
+  Search,
+  User,
+  ShoppingCart,
+  Package,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/cart-context";
+import { useAuth } from "@/contexts/auth-context";
 
 interface TopUtilityBarProps {
   onSearchClick: () => void;
@@ -13,9 +23,12 @@ export function TopUtilityBar({
   onSearchClick,
   onContactClick,
 }: TopUtilityBarProps) {
+  const { isLoggedIn } = useAuth();
+  const { totalItems } = useCart();
+
   return (
     <div className="w-full border-b bg-background">
-      <div className="grid grid-cols-3 items-center h-14 px-6 md:px-10">
+      <div className="grid grid-cols-3 items-center h-16 px-4 sm:px-6 md:px-10 gap-2">
         <div className="hidden sm:flex items-center gap-5 text-muted-foreground">
           <a
             href="https://wa.me/923000000000"
@@ -37,29 +50,61 @@ export function TopUtilityBar({
 
         <Link
           href="/"
-          className="justify-self-center text-2xl font-semibold tracking-tight"
+          className="justify-self-center whitespace-nowrap text-lg sm:text-xl md:text-2xl font-semibold tracking-tight"
         >
           Farzara Store
         </Link>
 
-        <div className="flex items-center gap-1 justify-self-end">
+        <div className="flex items-center justify-content gap-0.5 sm:gap-1 sm:justify-self-end ">
           <Button
             variant="ghost"
             size="icon"
-            className="h-12 w-12"
+            className="h-10 w-10 sm:h-12 sm:w-12"
             onClick={onSearchClick}
             aria-label="Search"
           >
-            <Search className="h-7 w-7" />
+            <Search className="h-5 w-5 sm:h-7 sm:w-7" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-12 w-12" asChild>
-            <Link href="/account" aria-label="Account">
-              <User className="h-7 w-7" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 sm:h-12 sm:w-12"
+            asChild
+          >
+            <Link
+              href={isLoggedIn ? "/account" : "/login"}
+              aria-label="Account"
+            >
+              <User className="h-5 w-5 sm:h-7 sm:w-7" />
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" className="h-12 w-12" asChild>
+          {/* Order-History */}
+          {isLoggedIn && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 sm:h-12 sm:w-12"
+              asChild
+            >
+              <Link href="/orders" aria-label="Order history">
+                <Package className="h-5 w-5 sm:h-7 sm:w-7" />
+              </Link>
+            </Button>
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 sm:h-12 sm:w-12 relative"
+            asChild
+          >
             <Link href="/cart" aria-label="View cart">
-              <ShoppingCart className="h-7 w-7" />
+              <ShoppingCart className="h-5 w-5 sm:h-7 sm:w-7" />
+              {totalItems > 0 && (
+                <span className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-medium flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
             </Link>
           </Button>
         </div>

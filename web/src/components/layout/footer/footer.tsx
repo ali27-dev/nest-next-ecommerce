@@ -4,7 +4,8 @@ import { MessageCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { categories } from "@/lib/nav-links";
+// import { categories } from "@/lib/nav-links";
+import type { Category } from "@/types/product";
 
 const supportLinks = [
   { label: "Contact Us", href: "/contact" },
@@ -15,10 +16,10 @@ const supportLinks = [
 
 const paymentMethods = ["Cash on Delivery", "EasyPaisa", "Bank Transfer"];
 
-export function Footer() {
+export function Footer({ categories }: { categories: Category[] }) {
   return (
     <footer className="w-full border-t bg-background mt-16">
-      <div className="mx-auto max-w-7xl px-6 md:px-10 py-12">
+      <div className="px-6 md:px-10 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand column */}
           <div>
@@ -66,12 +67,12 @@ export function Footer() {
             <h3 className="text-md font-semibold mb-4">Shop</h3>
             <ul className="flex flex-col gap-1.5">
               {categories.map((category) => (
-                <li key={category.href}>
+                <li key={category.id}>
                   <Link
-                    href={category.href}
+                    href={`/category/${category.id}`}
                     className="text-md text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {category.label}
+                    {category.name}
                   </Link>
                 </li>
               ))}
