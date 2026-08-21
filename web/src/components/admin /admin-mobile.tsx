@@ -41,7 +41,9 @@ export function AdminMobileNav({ triggerOnly }: { triggerOnly?: boolean }) {
         )}
       >
         <div className="h-16 flex items-center justify-between px-5 border-b shrink-0">
-          <span className="text-base font-semibold">Farzara Admin</span>
+          <Link className="text-base font-semibold" href="/">
+            Farzara Admin
+          </Link>
           <button
             onClick={() => setOpen(false)}
             aria-label="Close menu"

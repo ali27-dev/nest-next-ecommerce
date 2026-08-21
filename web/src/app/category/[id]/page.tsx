@@ -4,6 +4,8 @@ import { Category, Fabric, ProductListResponse } from "@/types/product";
 import { getCategoryTheme } from "@/lib/category-theme";
 import { FilterSortBar } from "@/components/product/filter-sort-bar";
 import { ProductGrid } from "@/components/product/product-grid";
+import { Banner } from "@/types/banner";
+import { HeroCarousel } from "@/components/home/hero-carousel";
 
 interface CategoryPageProps {
   params: Promise<{ id: string }>;
@@ -15,6 +17,7 @@ export default async function CategoryPage({
   searchParams,
 }: CategoryPageProps) {
   const { id } = await params;
+  const categoryBanners = await apiFetch<Banner[]>(`/banners?categoryId=${id}`);
   const sp = await searchParams;
 
   let category: Category;
@@ -43,18 +46,22 @@ export default async function CategoryPage({
 
   return (
     <div>
-      <div
-        className={`w-full h-[35vh] min-h-[220px] flex items-center bg-gradient-to-br ${theme.gradient}`}
-      >
-        <div className="px-6 md:px-10">
-          <p className="text-sm font-medium tracking-widest uppercase text-foreground/60 mb-2">
-            {theme.tagline}
-          </p>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
-            {category.name}
-          </h1>
+      {categoryBanners.length > 0 ? (
+        <HeroCarousel banners={categoryBanners} />
+      ) : (
+        <div
+          className={`w-full h-[35vh] min-h-[220px] flex items-center bg-gradient-to-br ${theme.gradient}`}
+        >
+          <div className="px-6 md:px-10">
+            <p className="text-sm font-medium tracking-widest uppercase text-foreground/60 mb-2">
+              {theme.tagline}
+            </p>
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+              {category.name}
+            </h1>
+          </div>
         </div>
-      </div>
+      )}
 
       <FilterSortBar fabrics={fabrics} total={meta.total} />
 
