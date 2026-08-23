@@ -60,6 +60,23 @@ enum StitchType {
   UNSTITCHED
 }
 
+
+enum TicketCategory {
+  PRODUCT
+  DELIVERY
+  PAYMENT
+  OTHER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+
+
 // USERS Model //
 model User{
   id String @id @default(uuid())
@@ -80,6 +97,8 @@ model User{
 
   @@index([email])
  @@map("users")
+  supportTickets SupportTicket[]
+  supportMessages SupportMessage[]
 }
 
 
@@ -158,6 +177,7 @@ updatedAt DateTime @updatedAt
 @@index([slug])
 @@index([isActive])
 @@map("categories")
+banners Banner[]
 }
 
 // ORDER-ITEMS Model //
@@ -229,6 +249,7 @@ updatedAt DateTime @updatedAt
 @@index([orderNumber])
 @@index([status])
 @@map("orders")
+supportTickets SupportTicket[]
 }
 
 // CART Model //
@@ -276,3 +297,63 @@ updatedAt DateTime @updatedAt
 @@map("payments")
 }
 
+model Banner {
+  id         String   @id @default(uuid())
+  imageUrl   String
+  title      String?
+  linkUrl    String?
+  order      Int      @default(0)
+  isActive   Boolean  @default(true)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([order])
+  @@index([categoryId])
+  @@map("banners")
+}
+
+
+
+model SupportTicket {
+  id          String         @id @default(uuid())
+  subject     String
+  category    TicketCategory
+  status      TicketStatus   @default(OPEN)
+
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orderId     String?
+  order       Order?         @relation(fields: [orderId], references: [id])
+
+  messages    SupportMessage[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id         String        @id @default(uuid())
+  message    String
+
+  ticketId   String
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  authorId   String
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  isFromAdmin Boolean      @default(false)
+
+  createdAt  DateTime      @default(now())
+
+  @@index([ticketId])
+  @@map("support_messages")
+}
