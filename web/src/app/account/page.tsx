@@ -49,6 +49,10 @@ export default function AccountPage() {
       <Button onClick={logout} variant="outline" className="mt-6 h-11">
         Log Out
       </Button>
+
+      <Button asChild variant="outline" className="mt-3 h-11 w-full">
+        <Link href="/support">Contact Support</Link>
+      </Button>
     </div>
   );
 }

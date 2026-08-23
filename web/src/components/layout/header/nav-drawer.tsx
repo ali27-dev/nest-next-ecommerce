@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { X, LogOut, LogIn, HelpCircle, Phone, Package } from "lucide-react";
+import {
+  X,
+  LogOut,
+  LogIn,
+  HelpCircle,
+  Phone,
+  Package,
+  LifeBuoy,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { getCategoryIcon } from "@/lib/category-icons";
@@ -88,20 +96,30 @@ export function NavDrawer({
         )}
 
         <div className="mt-auto border-t py-2">
-          <Link
+          {/* <Link
             href="/help"
             onClick={onClose}
             className="flex items-center gap-3 px-5 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            <HelpCircle className="h-5 w-5" /> Help &amp; Support
-          </Link>
+            <HelpCircle cla
+            ssName="h-5 w-5" /> Help &amp; Support
+          </Link> */}
+          {isLoggedIn && (
+            <Link
+              href="/support"
+              onClick={onClose}
+              className="flex items-center gap-3 px-5 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <LifeBuoy className="h-5 w-5" /> Support
+            </Link>
+          )}
+
           <a
             href="tel:+920000000000"
             className="flex items-center gap-3 px-5 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Phone className="h-5 w-5" /> Contact Us
           </a>
-
           {isLoggedIn ? (
             <button
               onClick={() => {
