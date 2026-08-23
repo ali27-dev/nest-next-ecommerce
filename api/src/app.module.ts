@@ -12,6 +12,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payment/payments.module';
 import { FabricsModule } from './modules/fabrics/fabrics.module';
 import { BannersModule } from './modules/banners/banners.module';
+import { SupportModule } from './modules/support/support.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { BannersModule } from './modules/banners/banners.module';
     PaymentsModule,
     FabricsModule,
     BannersModule,
+    SupportModule,
   ],
   controllers: [AppController],
   providers: [AppService],
