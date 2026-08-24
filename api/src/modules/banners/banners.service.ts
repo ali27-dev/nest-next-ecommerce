@@ -7,11 +7,11 @@ import { UpdateBannerDto } from './dto/update-banner.dto';
 export class BannersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateBannerDto) {
+  create(dto: CreateBannerDto) {
     return this.prisma.banner.create({ data: dto });
   }
 
-  async findAllActive(categoryId?: string) {
+  findAllActive(categoryId?: string) {
     return this.prisma.banner.findMany({
       where: {
         isActive: true,
@@ -21,7 +21,7 @@ export class BannersService {
     });
   }
 
-  async findAllAdmin() {
+  findAllAdmin() {
     return this.prisma.banner.findMany({ orderBy: { order: 'asc' } });
   }
 

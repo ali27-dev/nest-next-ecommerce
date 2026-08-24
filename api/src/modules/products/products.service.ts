@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   ConflictException,
   Injectable,
@@ -120,8 +118,8 @@ export class ProductsService {
   }
   // Find One product \\
   async findOne(id: string) {
-    const product = await this.prisma.product.findUnique({
-      where: { id },
+    const product = await this.prisma.product.findFirst({
+      where: { id, isActive: true },
       include: { category: true },
     });
 
@@ -132,9 +130,26 @@ export class ProductsService {
     return product;
   }
 
+  findAllAdmin() {
+    return this.prisma.product.findMany({
+      include: { category: true, fabric: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findOneAdmin(id: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: { category: true, fabric: true },
+    });
+    if (!product) throw new NotFoundException('Product not found');
+    return product;
+  }
+
   // Update product \\
   async update(id: string, updateProductDto: UpdateProductDto) {
-    await this.findOne(id); // throws 404 if not found
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
 
     if (updateProductDto.sku) {
       const existingSku = await this.prisma.product.findUnique({
@@ -151,7 +166,8 @@ export class ProductsService {
   }
 
   async remove(id: string) {
-    await this.findOne(id); // throws 404 if not found
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
 
     const orderItemCount = await this.prisma.orderItem.count({
       where: { productId: id },

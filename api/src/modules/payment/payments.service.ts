@@ -56,7 +56,7 @@ export class PaymentsService {
   }
 
   // Admin-only — list all payments awaiting manual verification
-  async findPending() {
+  findPending() {
     return this.prisma.payment.findMany({
       where: { status: PaymentStatus.PENDING, paymentMethod: { not: 'COD' } },
       include: { order: true },

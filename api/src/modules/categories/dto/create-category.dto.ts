@@ -4,6 +4,8 @@ import {
   IsOptional,
   IsUrl,
   IsBoolean,
+  IsInt,
+  Min,
   Matches,
 } from 'class-validator';
 
@@ -27,6 +29,19 @@ export class CreateCategoryDto {
   @IsOptional()
   @IsUrl({}, { message: 'Image URL must be a valid URL' })
   imageUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  tagline?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  showOnHome?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  homeOrder?: number;
 
   @IsOptional()
   @IsBoolean()

@@ -3,15 +3,15 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
-  // CRUD Operations for Categories \\
   async create(createCategoryDto: CreateCategoryDto) {
     const existingSlug = await this.prisma.category.findUnique({
       where: { slug: createCategoryDto.slug },
@@ -33,6 +33,19 @@ export class CategoriesService {
     });
   }
 
+  async findHomeFeatured() {
+    return this.prisma.category.findMany({
+      where: { isActive: true, showOnHome: true },
+      orderBy: [{ homeOrder: 'asc' }, { name: 'asc' }],
+    });
+  }
+
+  async findAllAdmin() {
+    return this.prisma.category.findMany({
+      orderBy: [{ homeOrder: 'asc' }, { name: 'asc' }],
+    });
+  }
+
   async findOne(id: string) {
     const category = await this.prisma.category.findUnique({
       where: { id },
@@ -45,9 +58,8 @@ export class CategoriesService {
     return category;
   }
 
-  // Update and Delete Operations for Categories \\
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
-    await this.findOne(id); // throws 404 if not found
+    await this.findOne(id);
 
     if (updateCategoryDto.slug) {
       const existingSlug = await this.prisma.category.findUnique({
@@ -65,7 +77,15 @@ export class CategoriesService {
   }
 
   async remove(id: string) {
-    await this.findOne(id); // throws 404 if not found
+    await this.findOne(id);
+    const productCount = await this.prisma.product.count({
+      where: { categoryId: id },
+    });
+    if (productCount > 0) {
+      throw new ConflictException(
+        'Cannot delete a category that still contains products',
+      );
+    }
     return this.prisma.category.delete({ where: { id } });
   }
 }

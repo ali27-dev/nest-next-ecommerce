@@ -15,6 +15,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { GetUser } from 'src/common/get-user.decorator';
 import { Role } from '@prisma/client';
+import { VerifyPaymentDto } from './dto/verify-payment.dto';
 
 @Controller('payments')
 @UseGuards(JwtAuthGuard)
@@ -47,9 +48,8 @@ export class PaymentsController {
   @Roles(Role.ADMIN)
   verify(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body('approve') approve: boolean,
-    @Body('reason') reason?: string,
+    @Body() dto: VerifyPaymentDto,
   ) {
-    return this.paymentsService.verify(id, approve, reason);
+    return this.paymentsService.verify(id, dto.approve, dto.reason);
   }
 }
