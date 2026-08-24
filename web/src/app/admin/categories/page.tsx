@@ -1,14 +1,21 @@
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
-import { Trash2 } from "lucide-react";
-import { apiFetch, apiAuthPost, apiAuthDelete } from "@/lib/api";
+import { Trash2, Upload, Home, Eye, EyeOff } from "lucide-react";
+import {
+  apiAuthGet,
+  apiAuthPost,
+  apiAuthPatch,
+  apiAuthDelete,
+  apiAuthUpload,
+} from "@/lib/api";
 import { Category } from "@/types/product";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/spinner";
 import { ConfirmDialog } from "@/components/admin /confirm-dialog";
 import { AdminBackButton } from "@/components/admin /admin-back-button";
+import { cn } from "@/lib/utils";
 
 function slugify(text: string) {
   return text
@@ -24,13 +31,14 @@ export default function AdminCategoriesPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<{
     id: string;
     name: string;
   } | null>(null);
 
   function load() {
-    apiFetch<Category[]>("/categories").then(setCategories);
+    apiAuthGet<Category[]>("/categories/admin/all").then(setCategories);
   }
 
   useEffect(load, []);
@@ -49,6 +57,41 @@ export default function AdminCategoriesPage() {
       );
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function updateField(
+    id: string,
+    field: keyof Pick<Category, "name" | "tagline" | "homeOrder" | "showOnHome">,
+    value: string | number | boolean
+  ) {
+    setError(null);
+    try {
+      await apiAuthPatch(`/categories/${id}`, { [field]: value });
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Update failed");
+    }
+  }
+
+  async function handleImageUpload(
+    id: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingId(id);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      await apiAuthUpload(`/categories/${id}/upload-image`, formData, "POST");
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploadingId(null);
+      e.target.value = "";
     }
   }
 
@@ -71,47 +114,166 @@ export default function AdminCategoriesPage() {
 
   if (!categories) return <FullPageSpinner />;
 
+  const homeCategories = categories.filter((c) => c.showOnHome);
+
   return (
-    <div>
+    <div className="space-y-8">
       <AdminBackButton />
 
-      <form onSubmit={handleCreate} className="flex gap-2 mb-6 max-w-md">
+      <div className="rounded-xl border bg-muted/30 p-4 md:p-5">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-background border">
+            <Home className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold">Home page — Shop by Category</h2>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1 leading-relaxed">
+              Toggle categories on, upload a cover image, set display order, and
+              add a short tagline. Only categories marked for home appear in the
+              storefront showcase.
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {homeCategories.length} categor{homeCategories.length === 1 ? "y" : "ies"} visible on home
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-2 max-w-lg">
         <Input
           required
           placeholder="New category name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-10"
+          className="h-11"
         />
-        <Button type="submit" disabled={saving} className="h-10 shrink-0">
-          {saving ? "Adding..." : "Add"}
+        <Button type="submit" disabled={saving} className="h-11 shrink-0">
+          {saving ? "Adding..." : "Add Category"}
         </Button>
       </form>
-      {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 
-      <div className="border rounded-xl divide-y bg-background">
-        {categories.map((c) => (
-          <div
-            key={c.id}
-            className="p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3"
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <div className="space-y-4">
+        {categories.map((category) => (
+          <article
+            key={category.id}
+            className={cn(
+              "rounded-xl border bg-background overflow-hidden",
+              category.showOnHome && "ring-1 ring-primary/20"
+            )}
           >
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{c.name}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                /{c.slug}
-              </p>
+            <div className="flex flex-col sm:flex-row">
+              <div className="relative w-full sm:w-36 md:w-44 aspect-[4/3] sm:aspect-auto sm:min-h-[140px] bg-muted shrink-0">
+                {category.imageUrl ? (
+                  <img
+                    src={category.imageUrl}
+                    alt={category.name}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground px-3 text-center">
+                    No image yet
+                  </div>
+                )}
+                <label className="absolute bottom-2 right-2 cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    disabled={uploadingId === category.id}
+                    onChange={(e) => handleImageUpload(category.id, e)}
+                  />
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-background/90 border shadow-sm hover:bg-background">
+                    <Upload className="h-3.5 w-3.5" />
+                  </span>
+                </label>
+              </div>
+
+              <div className="flex-1 p-4 space-y-3 min-w-0">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold truncate">{category.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      /{category.slug}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={category.showOnHome ? "default" : "outline"}
+                      className="h-8 text-xs gap-1.5"
+                      onClick={() =>
+                        updateField(category.id, "showOnHome", !category.showOnHome)
+                      }
+                    >
+                      {category.showOnHome ? (
+                        <>
+                          <Eye className="h-3.5 w-3.5" />
+                          On Home
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="h-3.5 w-3.5" />
+                          Hidden
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        setConfirmTarget({ id: category.id, name: category.name })
+                      }
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Tagline
+                    </label>
+                    <Input
+                      defaultValue={category.tagline ?? ""}
+                      placeholder="e.g. New arrivals for her"
+                      className="h-9 mt-1 text-sm"
+                      onBlur={(e) => {
+                        const value = e.target.value.trim();
+                        if (value !== (category.tagline ?? "")) {
+                          updateField(category.id, "tagline", value);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Home order
+                    </label>
+                    <Input
+                      type="number"
+                      min={0}
+                      defaultValue={category.homeOrder ?? 0}
+                      className="h-9 mt-1 text-sm"
+                      onBlur={(e) => {
+                        const value = Number(e.target.value);
+                        if (!Number.isNaN(value) && value !== category.homeOrder) {
+                          updateField(category.id, "homeOrder", value);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setConfirmTarget({ id: c.id, name: c.name })}
-              className="text-destructive hover:text-destructive shrink-0"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+          </article>
         ))}
       </div>
+
       <ConfirmDialog
         open={Boolean(confirmTarget)}
         title="Delete category?"

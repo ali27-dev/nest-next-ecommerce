@@ -158,7 +158,7 @@ export default function OrderDetailPage() {
               <div>
                 <p className="text-sm">{item.product?.name ?? "Product"}</p>
                 <p className="text-xs text-muted-foreground">
-                  Qty {item.quantity}
+                  Qty {item.quantity}{item.size ? ` · Size ${item.size}` : ""}
                 </p>
               </div>
               <p className="text-sm font-mono">
