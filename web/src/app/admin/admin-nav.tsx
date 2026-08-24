@@ -9,6 +9,8 @@ import {
   Shirt,
   ShoppingBag,
   CreditCard,
+  Image,
+  LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,8 +20,9 @@ const navItems = [
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Categories", href: "/admin/categories", icon: Tags },
   { label: "Fabrics", href: "/admin/fabrics", icon: Shirt },
+  { label: "Banners", href: "/admin/banners", icon: Image },
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
-  { label: "Banners", href: "/admin/banners", icon: CreditCard },
+  { label: "Support", href: "/admin/support", icon: LifeBuoy },
 ];
 
 export function AdminNavList({ onNavigate }: { onNavigate?: () => void }) {
