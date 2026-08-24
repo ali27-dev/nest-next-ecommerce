@@ -24,6 +24,9 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { CloudinaryService } from 'src/config/cloudinary.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { PieceCount, Season } from '@prisma/client';
+import { Role } from '@prisma/client';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('products')
 export class ProductsController {
@@ -57,9 +60,24 @@ export class ProductsController {
       pieceCount,
       minPrice,
       maxPrice,
+      onSale,
       sort,
       search,
     });
+  }
+
+  @Get('admin/all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  findAllAdmin() {
+    return this.productsService.findAllAdmin();
+  }
+
+  @Get('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  findOneAdmin(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productsService.findOneAdmin(id);
   }
 
   @Get(':id')
@@ -68,13 +86,15 @@ export class ProductsController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateProductDto: UpdateProductDto,
@@ -83,7 +103,8 @@ export class ProductsController {
   }
   // Image upload
   @Patch(':id/image')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @UseInterceptors(FileInterceptor('image'))
   async uploadImage(
     @Param('id', ParseUUIDPipe) id: string,
@@ -94,7 +115,8 @@ export class ProductsController {
   }
 
   @Patch(':id/gallery')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @UseInterceptors(FilesInterceptor('images', 8))
   async uploadGallery(
     @Param('id', ParseUUIDPipe) id: string,
@@ -114,7 +136,8 @@ export class ProductsController {
   }
 
   @Patch(':id/secondary-image')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @UseInterceptors(FileInterceptor('image'))
   async uploadSecondaryImage(
     @Param('id', ParseUUIDPipe) id: string,
@@ -128,7 +151,8 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.productsService.remove(id);
   }

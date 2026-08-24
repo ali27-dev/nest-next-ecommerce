@@ -168,6 +168,9 @@ model Category {
  description String?
  slug String @unique
  imageUrl String?
+ tagline String?
+ showOnHome Boolean @default(false)
+ homeOrder Int @default(0)
  isActive Boolean @default(true)
  products Product[]
 
@@ -176,6 +179,7 @@ updatedAt DateTime @updatedAt
 
 @@index([slug])
 @@index([isActive])
+@@index([showOnHome, homeOrder])
 @@map("categories")
 banners Banner[]
 }
@@ -185,6 +189,7 @@ banners Banner[]
     id String @id @default(uuid())
     quantity Int
     price Decimal @db.Decimal(10,2)
+    size String @default("")
   productId String
   product Product @relation(fields: [productId],references: [id])
 
@@ -206,6 +211,7 @@ banners Banner[]
  model CartItem{
     id String @id @default(uuid())
     quantity Int @default(1)
+    size String @default("")
   productId String
   product Product @relation(fields: [productId],references: [id])
 
@@ -216,7 +222,7 @@ banners Banner[]
   createdAt DateTime @default(now())
 updatedAt DateTime @updatedAt
 
-@@unique([cartId,productId])
+@@unique([cartId,productId,size])
 @@index([productId])
 @@index([cartId])
 @@map("carts_items") 

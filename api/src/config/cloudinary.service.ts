@@ -15,6 +15,12 @@ export class CloudinaryService {
     if (!file) {
       throw new BadRequestException('No file provided');
     }
+    if (!file.mimetype.startsWith('image/')) {
+      throw new BadRequestException('Only image uploads are allowed');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new BadRequestException('Image must be 5 MB or smaller');
+    }
 
     return new Promise((resolve, reject) => {
       const uploadStream = this.cloudinary.uploader.upload_stream(

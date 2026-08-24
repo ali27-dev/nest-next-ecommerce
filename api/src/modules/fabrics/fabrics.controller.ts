@@ -13,6 +13,9 @@ import { FabricsService } from './fabrics.service';
 import { CreateFabricDto } from './dto/create-fabric.dto';
 import { UpdateFabricDto } from './dto/update-fabric.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('fabrics')
 export class FabricsController {
@@ -29,13 +32,15 @@ export class FabricsController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   create(@Body() createFabricDto: CreateFabricDto) {
     return this.fabricsService.create(createFabricDto);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateFabricDto: UpdateFabricDto,
@@ -44,7 +49,8 @@ export class FabricsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.fabricsService.remove(id);
   }

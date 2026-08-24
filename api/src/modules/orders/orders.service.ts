@@ -55,18 +55,26 @@ export class OrdersService {
               productId: item.productId,
               quantity: item.quantity,
               price: item.product.price, // snapshot price at time of purchase
+              size: item.size,
             })),
           },
         },
         include: { orderItems: { include: { product: true } } },
       });
 
-      // Decrement stock for each purchased product
+      // Decrement only when stock is still available. The preflight check above
+      // improves the error message, but this conditional update is the actual
+      // concurrency guarantee.
       for (const item of cart.cartItems) {
-        await tx.product.update({
-          where: { id: item.productId },
+        const result = await tx.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity } },
           data: { stock: { decrement: item.quantity } },
         });
+        if (result.count !== 1) {
+          throw new BadRequestException(
+            `Not enough stock for ${item.product.name}`,
+          );
+        }
       }
 
       // Mark this cart as checked out — user gets a fresh cart next time
@@ -79,7 +87,7 @@ export class OrdersService {
     });
   }
 
-  async findAll(userId: string) {
+  findAll(userId: string) {
     return this.prisma.order.findMany({
       where: { userId },
       include: { orderItems: { include: { product: true } } },
@@ -87,7 +95,7 @@ export class OrdersService {
     });
   }
 
-  async findAllAdmin() {
+  findAllAdmin() {
     return this.prisma.order.findMany({
       include: {
         orderItems: { include: { product: true } },
