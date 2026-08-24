@@ -11,6 +11,10 @@ export const categoryThemes: Record<
     gradient: "from-slate-300 via-stone-200 to-neutral-200",
     tagline: "Sharp looks, every day",
   },
+  kids: {
+    gradient: "from-emerald-200 via-teal-100 to-cyan-100",
+    tagline: "Playful styles for little ones",
+  },
   watches: {
     gradient: "from-amber-200 via-yellow-100 to-orange-100",
     tagline: "Timeless pieces",

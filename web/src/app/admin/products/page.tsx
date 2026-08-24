@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Trash2 } from "lucide-react";
-import { apiFetch, apiAuthDelete } from "@/lib/api";
-import { Product, ProductListResponse } from "@/types/product";
+import { apiAuthGet, apiAuthDelete } from "@/lib/api";
+import { Product } from "@/types/product";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/spinner";
@@ -22,9 +22,7 @@ export default function AdminProductsPage() {
   } | null>(null);
 
   function load() {
-    apiFetch<ProductListResponse>("/products?limit=100").then((r) =>
-      setProducts(r.products)
-    );
+    apiAuthGet<Product[]>("/products/admin/all").then(setProducts);
   }
 
   useEffect(load, []);

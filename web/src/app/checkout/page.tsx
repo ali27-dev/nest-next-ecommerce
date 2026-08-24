@@ -3,7 +3,6 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { useCart } from "@/contexts/cart-context";
@@ -68,12 +67,17 @@ export default function CheckoutPage() {
         await apiAuthPost("/cart/items", {
           productId: line.product.id,
           quantity: line.quantity,
+          size: line.size ?? undefined,
         });
       }
 
       const order = await apiAuthPost<Order>("/orders/checkout", {
         shippingAddress,
       });
+
+      // The order has already atomically consumed the server cart and stock.
+      // Remove its local mirror before navigating so it cannot be submitted again.
+      clear();
 
       if (method === "COD") {
         await apiAuthPost("/payments", {

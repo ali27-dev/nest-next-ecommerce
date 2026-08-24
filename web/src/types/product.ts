@@ -2,6 +2,12 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  tagline?: string | null;
+  showOnHome?: boolean;
+  homeOrder?: number;
+  isActive?: boolean;
 }
 
 export interface Fabric {

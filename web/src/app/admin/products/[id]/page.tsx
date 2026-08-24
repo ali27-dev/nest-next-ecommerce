@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { apiFetch } from "@/lib/api";
+import { apiAuthGet, apiFetch } from "@/lib/api";
 import { Category, Fabric, Product } from "@/types/product";
 
 import { FullPageSpinner } from "@/components/ui/spinner";
@@ -17,7 +17,7 @@ export default function EditProductPage() {
   const [fabrics, setFabrics] = useState<Fabric[] | null>(null);
 
   useEffect(() => {
-    apiFetch<Product>(`/products/${params.id}`).then(setProduct);
+    apiAuthGet<Product>(`/products/admin/${params.id}`).then(setProduct);
     apiFetch<Category[]>("/categories").then(setCategories);
     apiFetch<Fabric[]>("/fabrics").then(setFabrics);
   }, [params.id]);
