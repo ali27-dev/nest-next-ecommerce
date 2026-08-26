@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 export function PromoBanner() {
   return (
     <section className="relative overflow-hidden bg-foreground text-background">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] bg-background/25 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-900/25  via-transparent to-transparent" />
       <div className="mx-auto max-w-7xl px-6 md:px-10 py-16 md:py-24 relative">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs md:text-sm font-medium tracking-[0.25em] uppercase text-background/60 mb-4">
