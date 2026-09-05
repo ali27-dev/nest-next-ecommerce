@@ -4,8 +4,8 @@ A full-stack fashion e-commerce platform — menswear, womenswear, watches, shoe
 
 | | |
 |---|---|
-| **Live storefront** | _add your deployed Netlify/Vercel URL here_ |
-| **Live API** | _add your deployed Render URL here_ |
+| **Live storefront** | https://checking-nest-next-ecommerce.vercel.app/ |
+| **Live API** | https://nest-next-ecommerce-4fqq.onrender.com/api/v1/products |
 
 ## Repositories
 
