@@ -5,21 +5,34 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ].filter(Boolean) as string[];
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
   });
 
-  // project description
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // strips properties not defined in the DTO
-      forbidNonWhitelisted: true, // throws an error if extra properties are sent
-      transform: true, // auto-converts payloads into DTO class instances
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
       transformOptions: {
-        enableImplicitConversion: true, // e.g. query param "5" -> number 5
+        enableImplicitConversion: true,
       },
     }),
   );

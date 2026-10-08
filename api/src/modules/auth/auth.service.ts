@@ -4,7 +4,6 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-// import { randomBytes } from 'crypto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
@@ -65,7 +64,6 @@ export class AuthService {
     }
   }
 
-  // Log in
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
 
@@ -74,7 +72,7 @@ export class AuthService {
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Inavalid EMAIL or PASSWORD');
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     const tokens = await this.generateTokens(user.id, user.email);
@@ -92,7 +90,6 @@ export class AuthService {
     };
   }
 
-  // Generate Tokens \\
   private async generateTokens(
     userId: string,
     email: string,
@@ -113,7 +110,6 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  // Update refresh token in the database \\
   async updateRefreshToken(
     userId: string,
     refreshToken: string,
@@ -126,7 +122,6 @@ export class AuthService {
     });
   }
 
-  // refresh tokens method \\
   async refreshTokens(userId: string): Promise<AuthResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -136,7 +131,6 @@ export class AuthService {
         firstName: true,
         lastName: true,
         role: true,
-        // refreshToken: true,
       },
     });
 
@@ -150,7 +144,6 @@ export class AuthService {
     return { ...tokens, user };
   }
 
-  // Log out
   async logout(userId: string): Promise<void> {
     await this.prisma.user.update({
       where: { id: userId },
