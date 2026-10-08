@@ -12,8 +12,10 @@ import { ProductShowcaseGrid } from "@/components/home/product-showcase-grid";
 import { PromoBanner } from "@/components/home/promo-banner";
 
 export default async function Home() {
-  const [categories, banners, newArrivals, saleProducts] = await Promise.all([
+  const [categories, homeCategories, banners, newArrivals, saleProducts] =
+    await Promise.all([
     apiFetch<Category[]>("/categories"),
+    apiFetch<Category[]>("/categories/home"),
     apiFetch<Banner[]>("/banners"),
     apiFetch<ProductListResponse>("/products?sort=newest&limit=8"),
     apiFetch<ProductListResponse>("/products?onSale=true&limit=8"),
@@ -32,13 +34,15 @@ export default async function Home() {
       {banners.length > 0 ? <HeroCarousel banners={banners} /> : <HeroBanner />}
       <TrustBar />
 
-      <HomeSection variant="muted" id="categories">
-        <SectionHeader
-          title="Shop by Category"
-          subtitle="Curated Collections"
-        />
-        <CategoryShowcase categories={categories} />
-      </HomeSection>
+      {homeCategories.length > 0 && (
+        <HomeSection variant="muted" id="categories">
+          <SectionHeader
+            title="Shop by Category"
+            subtitle="Curated Collections"
+          />
+          <CategoryShowcase categories={homeCategories} />
+        </HomeSection>
+      )}
 
       {newArrivals.products.length > 0 && (
         <HomeSection>

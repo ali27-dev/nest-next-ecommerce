@@ -2,7 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  // ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -21,22 +21,71 @@ export class PaymentsService {
       throw new NotFoundException('Order not found');
     }
 
+    if (order.status === OrderStatus.CANCELLED) {
+      throw new BadRequestException('This order has been cancelled');
+    }
+
     const existingPayment = await this.prisma.payment.findUnique({
       where: { orderId: dto.orderId },
     });
-    if (existingPayment) {
+
+    // A rejected payment (order is FAILED) may be resubmitted with a new
+    // reference. Any other existing payment blocks a second one.
+    const isRetry =
+      existingPayment?.status === PaymentStatus.FAILED &&
+      order.status === OrderStatus.FAILED;
+
+    if (existingPayment && !isRetry) {
       throw new BadRequestException('A payment already exists for this order');
+    }
+
+    const transactionId =
+      dto.paymentMethod === 'COD' ? undefined : dto.transactionId;
+
+    // The same reference must not be used to "pay" for two different orders
+    if (transactionId) {
+      const duplicate = await this.prisma.payment.findFirst({
+        where: {
+          transactionId: { equals: transactionId, mode: 'insensitive' },
+          status: { not: PaymentStatus.FAILED },
+          ...(existingPayment && { id: { not: existingPayment.id } }),
+        },
+      });
+      if (duplicate) {
+        throw new ConflictException(
+          'This transaction ID has already been used. Please check it and try again.',
+        );
+      }
     }
 
     // COD needs no proof and no admin verification — mark it pending until delivery
     // EasyPaisa/bank transfer sit as PENDING until an admin verifies the transactionId
+    if (existingPayment && isRetry) {
+      return this.prisma.$transaction(async (tx) => {
+        const payment = await tx.payment.update({
+          where: { id: existingPayment.id },
+          data: {
+            paymentMethod: dto.paymentMethod,
+            transactionId,
+            status: PaymentStatus.PENDING,
+            rejectionReason: null,
+          },
+        });
+        await tx.order.update({
+          where: { id: order.id },
+          data: { status: OrderStatus.PENDING },
+        });
+        return payment;
+      });
+    }
+
     return this.prisma.payment.create({
       data: {
         orderId: dto.orderId,
         userId,
         amount: order.totalAmount,
         paymentMethod: dto.paymentMethod,
-        transactionId: dto.transactionId,
+        transactionId,
         status: PaymentStatus.PENDING,
       },
     });

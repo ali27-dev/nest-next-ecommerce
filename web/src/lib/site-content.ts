@@ -95,3 +95,53 @@ export const aboutContent = {
     },
   ],
 };
+
+// ---------------------------------------------------------------------------
+// Payment accounts shown on the payment page.
+// TODO: replace the placeholder values below with your real account details.
+// ---------------------------------------------------------------------------
+export interface PaymentAccountField {
+  label: string;
+  value: string;
+  copyable?: boolean;
+}
+
+export interface PaymentAccount {
+  label: string;
+  fieldLabel: string;
+  fieldHint: string;
+  steps: string[];
+  details: PaymentAccountField[];
+}
+
+export const paymentAccounts: Record<"EASY_PAISA" | "BANK_TRANSFER", PaymentAccount> = {
+  EASY_PAISA: {
+    label: "EasyPaisa",
+    fieldLabel: "EasyPaisa Transaction ID",
+    fieldHint: "Found in the confirmation SMS or the app's transaction history.",
+    steps: [
+      "Open the EasyPaisa app and choose Send Money.",
+      "Send the exact order total to the account below.",
+      "Copy the Transaction ID from the confirmation and paste it here.",
+    ],
+    details: [
+      { label: "Account title", value: "Farzara Store" },
+      { label: "EasyPaisa number", value: "03XX-XXXXXXX", copyable: true },
+    ],
+  },
+  BANK_TRANSFER: {
+    label: "Bank Transfer",
+    fieldLabel: "Bank Reference Number",
+    fieldHint: "Use the reference / transaction number from your bank receipt.",
+    steps: [
+      "Open your banking app or visit a branch.",
+      "Transfer the exact order total to the account below.",
+      "Copy the reference number from the receipt and paste it here.",
+    ],
+    details: [
+      { label: "Bank", value: "Your Bank Name" },
+      { label: "Account title", value: "Farzara Store" },
+      { label: "IBAN", value: "PK00XXXX0000000000000000", copyable: true },
+    ],
+  },
+};

@@ -74,9 +74,37 @@ export default function OrderDetailPage() {
     ? paymentStatusLabel(order.payment.status)
     : null;
 
+  // Order exists but no payment was ever submitted (e.g. the customer left the
+  // payment page), or the submitted payment was rejected and can be retried.
+  const needsPayment = !order.payment && order.status === "PENDING";
+  const paymentRejected =
+    order.status === "FAILED" && order.payment?.status === "FAILED";
+  const payHref = `/checkout/pay?orderId=${order.id}`;
+
   return (
-    <div className="px-6 md:px-10 py-8 max-w-3xl mx-auto">
-      {justPlaced && (
+    <div className="px-4 sm:px-6 md:px-10 py-6 md:py-8 max-w-3xl mx-auto">
+      {needsPayment && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-amber-200 bg-amber-50 text-amber-900 rounded-xl px-5 py-4 mb-6">
+          <div>
+            <p className="text-sm font-medium">Payment pending</p>
+            <p className="text-xs mt-0.5">
+              Your order is reserved. Complete the payment so we can start
+              processing it.
+            </p>
+          </div>
+          <Button asChild className="h-11 rounded-full shrink-0">
+            <Link href={payHref}>Complete Payment</Link>
+          </Button>
+        </div>
+      )}
+      {paymentRejected && (
+        <div className="flex justify-end mb-6">
+          <Button asChild className="h-11 rounded-full">
+            <Link href={payHref}>Resubmit Payment</Link>
+          </Button>
+        </div>
+      )}
+      {justPlaced && !needsPayment && (
         <div className="flex items-center gap-3 border border-green-200 bg-green-50 text-green-800 rounded-xl px-5 py-4 mb-8">
           <CheckCircle2 className="h-6 w-6 shrink-0" />
           <div>

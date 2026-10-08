@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,21 @@ import { OrderSummaryPanel } from "@/components/checkout/order-summary-pannel";
 import { Spinner } from "@/components/ui/spinner";
 
 const paymentMethods = [
-  { value: "COD", label: "Cash on Delivery (COD)" },
-  { value: "EASY_PAISA", label: "EasyPaisa" },
-  { value: "BANK_TRANSFER", label: "Bank Transfer" },
+  {
+    value: "COD",
+    label: "Cash on Delivery (COD)",
+    hint: "Pay in cash when your order arrives.",
+  },
+  {
+    value: "EASY_PAISA",
+    label: "EasyPaisa",
+    hint: "You'll get our EasyPaisa account details on the next step.",
+  },
+  {
+    value: "BANK_TRANSFER",
+    label: "Bank Transfer",
+    hint: "You'll get our bank account details on the next step.",
+  },
 ] as const;
 
 export default function CheckoutPage() {
@@ -33,9 +45,13 @@ export default function CheckoutPage() {
     useState<(typeof paymentMethods)[number]["value"]>("COD");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Set once the order exists. The cart is emptied right after, which would
+  // otherwise trigger the "empty cart -> /cart" redirect below and override
+  // our navigation to the payment page.
+  const orderPlacedRef = useRef(false);
 
   useEffect(() => {
-    if (loading) return; // don't redirect away mid-submit
+    if (loading || orderPlacedRef.current) return; // don't redirect mid-submit / after order
     if (!isLoggedIn) {
       router.push("/login?redirect=/checkout");
       return;
@@ -76,25 +92,32 @@ export default function CheckoutPage() {
       });
 
       // The order has already atomically consumed the server cart and stock.
-      // Remove its local mirror before navigating so it cannot be submitted again.
+      // Block the empty-cart redirect, then clear the local mirror so the
+      // order cannot be submitted twice.
+      orderPlacedRef.current = true;
       clear();
 
       if (method === "COD") {
-        await apiAuthPost("/payments", {
-          orderId: order.id,
-          paymentMethod: "COD",
-        });
+        try {
+          await apiAuthPost("/payments", {
+            orderId: order.id,
+            paymentMethod: "COD",
+          });
+        } catch {
+          // Order exists; the order page lets the customer finish payment.
+        }
         router.push(`/orders/${order.id}?placed=1`);
       } else {
         router.push(`/checkout/pay?orderId=${order.id}&method=${method}`);
       }
+      // Keep the button in its loading state until the new page takes over.
+      return;
     } catch (err) {
       if (err instanceof UnauthorizedError) {
         router.push("/login?redirect=/checkout&expired=1");
-        return;
+      } else {
+        setError(err instanceof Error ? err.message : "Something went wrong");
       }
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
       setLoading(false);
     }
   }
@@ -102,10 +125,13 @@ export default function CheckoutPage() {
   if (lines.length === 0) return null;
 
   return (
-    <div className="px-6 md:px-10 py-8">
-      <h1 className="text-xl font-semibold mb-6">Checkout</h1>
+    <div className="px-4 sm:px-6 md:px-10 py-6 md:py-8 max-w-7xl mx-auto">
+      <h1 className="text-xl md:text-2xl font-semibold mb-6">Checkout</h1>
 
-      <form onSubmit={handleSubmit} className="grid md:grid-cols-3 gap-10">
+      <form
+        onSubmit={handleSubmit}
+        className="grid md:grid-cols-3 gap-8 md:gap-10"
+      >
         <div className="md:col-span-2 flex flex-col gap-8">
           <section>
             <h2 className="text-sm font-semibold mb-3">Contact</h2>
@@ -179,7 +205,7 @@ export default function CheckoutPage() {
               {paymentMethods.map((m) => (
                 <label
                   key={m.value}
-                  className="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer has-[:checked]:border-foreground"
+                  className="flex items-start gap-3 border rounded-xl px-4 py-3.5 cursor-pointer transition-colors has-[:checked]:border-foreground has-[:checked]:bg-muted/40"
                 >
                   <input
                     type="radio"
@@ -187,8 +213,16 @@ export default function CheckoutPage() {
                     value={m.value}
                     checked={method === m.value}
                     onChange={() => setMethod(m.value)}
+                    className="mt-1"
                   />
-                  <span className="text-sm font-medium">{m.label}</span>
+                  <span>
+                    <span className="block text-sm font-medium">
+                      {m.label}
+                    </span>
+                    <span className="block text-xs text-muted-foreground mt-0.5">
+                      {m.hint}
+                    </span>
+                  </span>
                 </label>
               ))}
             </div>
@@ -202,7 +236,11 @@ export default function CheckoutPage() {
             className="h-12 w-full md:w-fit md:px-12"
           >
             {loading && <Spinner className="mr-2" />}
-            {loading ? "Placing order..." : "Place Order"}
+            {loading
+              ? "Placing order..."
+              : method === "COD"
+              ? "Place Order"
+              : "Continue to Payment"}
           </Button>
         </div>
 
